@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin
+Disallow: /revit/familias/*/baixar
+Disallow: /revit/familias/*/favoritar
+Disallow: /conectar
+Disallow: /whatsapp
+Disallow: /mensagem-enviada
+
+Sitemap: https://unset.com.br/sitemap.xml

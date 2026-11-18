@@ -1,0 +1,402 @@
+@import "tailwindcss";
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/* Soft page transitions between server-rendered pages (ignored where
+   unsupported), only for people who did not ask for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+        navigation: auto;
+    }
+}
+
+/* Tailwind v4 resets buttons to the default cursor: restore the pointer. */
+@layer base {
+    button:not(:disabled),
+    [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
+
+    /* Long words and URLs wrap instead of widening the page on phones. */
+    body {
+        overflow-wrap: break-word;
+    }
+
+    /* Balanced headings and no orphan words in paragraphs (never on *: it costs layout time). */
+    h1,
+    h2,
+    h3 {
+        text-wrap: balance;
+    }
+
+    p,
+    li {
+        text-wrap: pretty;
+    }
+}
+
+/* Header dropdowns (services, user menu, reader contents) are native popovers.
+   Without anchor positioning they open at a fixed offset under the header;
+   browsers with it place them right under their button. */
+@layer components {
+    .menu-popover {
+        position: fixed;
+        inset: auto;
+        margin: 0;
+        inset-block-start: 4.5rem;
+    }
+
+    .menu-popover--end {
+        inset-inline-end: max(1rem, env(safe-area-inset-right, 0px));
+    }
+
+    .menu-popover--services {
+        inset-inline-start: 50%;
+        translate: -50% 0;
+    }
+
+    .menu-popover--reader {
+        inset-block-start: 4rem;
+        inset-inline-end: max(1rem, env(safe-area-inset-right, 0px));
+    }
+
+    .menu-trigger-user {
+        anchor-name: --user-menu;
+    }
+
+    .menu-trigger-services {
+        anchor-name: --services-menu;
+    }
+
+    @supports (anchor-name: --a) {
+        #user-menu {
+            inset-block-start: calc(anchor(--user-menu bottom) + 0.5rem);
+        }
+
+        #services-menu {
+            inset-block-start: calc(anchor(--services-menu bottom) + 0.5rem);
+            inset-inline-start: anchor(--services-menu left);
+            translate: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .menu-popover {
+            transition: opacity 0.15s, translate 0.15s, display 0.15s, overlay 0.15s;
+            transition-behavior: allow-discrete;
+        }
+
+        .menu-popover:not(:popover-open) {
+            opacity: 0;
+        }
+
+        @starting-style {
+            .menu-popover:popover-open {
+                opacity: 0;
+            }
+        }
+    }
+}
+
+/* Online reader: bigger type, comfortable line length, wide tables scroll
+   inside their own box instead of the page. */
+@layer components {
+    .reader-content {
+        font-size: 1.125rem;
+        line-height: 1.8;
+        max-inline-size: 70ch;
+    }
+
+    .reader-content table {
+        display: block;
+        max-inline-size: 100%;
+        overflow-x: auto;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+    }
+
+    .reader-content th,
+    .reader-content td {
+        border: 1px solid var(--color-line);
+        padding: 0.5rem 0.75rem;
+        text-align: start;
+    }
+
+    .reader-content figure figcaption {
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--color-subtle);
+    }
+}
+
+/* Loading state set by resources/js/app.js while a form is being submitted. */
+@keyframes ui-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@layer components {
+    button[data-loading] {
+        cursor: progress;
+    }
+
+    /* Spinner as the first flex item of the button, in the text color. */
+    button[data-loading]::before {
+        content: "";
+        flex: none;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 9999px;
+        animation: ui-spin 0.7s linear infinite;
+    }
+}
+
+@theme {
+    --font-sans:
+        "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+    /* Display face for headings and the brand name: a technical, drawing-sheet feel. */
+    --font-display:
+        "Barlow Semi Condensed", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+    /* Brand gradient: engineering blue into violet. Used only on primary
+       actions and brand marks, never as a section wash. */
+    --color-gradient-from: #2563eb;
+    --color-gradient-via: #5b5cf0;
+    --color-gradient-to: #7c4dff;
+    --color-violet: #7c4dff;
+
+    /* Brand scale: change these to re-skin the whole site.
+       Engineering blue: the base color sits at 600 (header and buttons). */
+    --color-brand-50: #eff5ff;
+    --color-brand-100: #dbe8fe;
+    --color-brand-200: #bfd5fe;
+    --color-brand-300: #93b8fd;
+    --color-brand-400: #6090fa;
+    --color-brand-500: #3b6bf6;
+    --color-brand-600: #1d4ed8;
+    --color-brand-700: #1e40af;
+    --color-brand-800: #1e3a8a;
+    --color-brand-900: #172554;
+    --color-brand-950: #0f1a3d;
+
+    /* Semantic colors: pages and components use only these names. */
+    --color-primary: var(--color-brand-600);
+    --color-primary-hover: var(--color-brand-700);
+    --color-primary-soft: var(--color-brand-50);
+    --color-primary-soft-hover: var(--color-brand-100);
+    --color-on-primary-soft: var(--color-brand-800);
+    --color-on-primary: #ffffff;
+
+    --color-header: var(--color-brand-600);
+    --color-on-header: #ffffff;
+
+    --color-accent: #f59e0b;
+
+    --color-success: #15803d;
+    --color-success-soft: #dcfce7;
+
+    --color-canvas: #f4f6fd;
+    --color-surface: #ffffff;
+    --color-ink: #101a3a;
+    --color-muted: #475467;
+    --color-subtle: #667085;
+    --color-line: #e3e6f3;
+
+    /* Shape and depth. */
+    --radius-card: 1rem;
+    --radius-control: 0.75rem;
+    --shadow-card:
+        0 1px 2px rgb(16 24 40 / 0.04), 0 4px 16px rgb(16 24 40 / 0.06);
+}
+
+/* Rendered RichEditor content (services and portfolio pages). Scoped to
+   .rich-content so it never leaks into the rest of the layout. */
+@layer components {
+    .rich-content {
+        color: var(--color-muted);
+        line-height: 1.75;
+    }
+
+    .rich-content > * + * {
+        margin-top: 1rem;
+    }
+
+    .rich-content h2 {
+        margin-top: 2rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.3;
+        color: var(--color-ink);
+    }
+
+    .rich-content h3 {
+        margin-top: 1.5rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        line-height: 1.4;
+        color: var(--color-ink);
+    }
+
+    .rich-content > :first-child {
+        margin-top: 0;
+    }
+
+    .rich-content strong {
+        font-weight: 600;
+        color: var(--color-ink);
+    }
+
+    .rich-content a {
+        font-weight: 600;
+        color: var(--color-primary);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .rich-content ul,
+    .rich-content ol {
+        padding-left: 1.5rem;
+    }
+
+    .rich-content ul {
+        list-style: disc;
+    }
+
+    .rich-content ol {
+        list-style: decimal;
+    }
+
+    .rich-content li + li {
+        margin-top: 0.375rem;
+    }
+
+    .rich-content li::marker {
+        color: var(--color-primary);
+    }
+
+    .rich-content blockquote {
+        border-left: 4px solid var(--color-primary);
+        padding-left: 1rem;
+        font-style: italic;
+        color: var(--color-ink);
+    }
+
+    .rich-content hr {
+        margin-block: 2rem;
+        border-color: var(--color-line);
+    }
+
+    /* Images keep the width set in the editor, but never overflow on phones. */
+    .rich-content img {
+        max-width: 100%;
+        height: auto !important;
+        border-radius: var(--radius-control);
+    }
+
+    /* CSS-only gallery lightbox, opened through the URL hash (:target). */
+    .lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1rem;
+    }
+
+    .lightbox:target {
+        display: flex;
+    }
+
+    .lightbox-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgb(0 0 0 / 0.88);
+    }
+
+    .lightbox-figure {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .lightbox-btn {
+        position: absolute;
+        display: flex;
+        width: 3rem;
+        height: 3rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
+        background: rgb(255 255 255 / 0.12);
+        color: #fff;
+        transition: background 0.15s;
+    }
+
+    .lightbox-btn:hover {
+        background: rgb(255 255 255 / 0.25);
+    }
+}
+
+/* Quote form: the extra questions follow the chosen service's area, with no
+   JavaScript. Both groups stay in the form; the server keeps the right one. */
+@layer components {
+    .quote-form [data-details] {
+        display: none;
+    }
+
+    .quote-form:has(option[data-area="engineering"]:checked) [data-details="engineering"],
+    .quote-form:has(option[data-area="technology"]:checked) [data-details="technology"] {
+        display: grid;
+    }
+}
+
+/* Brand gradient fill (buttons, logo badge, social icons). */
+@utility bg-brand-gradient {
+    background-image: linear-gradient(
+        120deg,
+        var(--color-gradient-from),
+        var(--color-gradient-via) 55%,
+        var(--color-gradient-to)
+    );
+}
+
+/* Structural drawing axes (dash-dot center lines), used behind the home hero. */
+@layer components {
+    .axis-line-v,
+    .axis-line-h {
+        position: absolute;
+        --axis-color: rgb(37 99 235 / 0.22);
+    }
+
+    .axis-line-v {
+        inset-block: 0;
+        inline-size: 1px;
+        background: repeating-linear-gradient(
+            to bottom,
+            var(--axis-color) 0 18px,
+            transparent 18px 23px,
+            var(--axis-color) 23px 25px,
+            transparent 25px 30px
+        );
+    }
+
+    .axis-line-h {
+        inset-inline: 0;
+        block-size: 1px;
+        background: repeating-linear-gradient(
+            to right,
+            var(--axis-color) 0 18px,
+            transparent 18px 23px,
+            var(--axis-color) 23px 25px,
+            transparent 25px 30px
+        );
+    }
+}
