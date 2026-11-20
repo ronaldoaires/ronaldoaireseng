@@ -22,7 +22,13 @@ class ReaderController extends Controller
 
         $chapters = $product->chapters()->get(['id', 'product_id', 'title', 'slug', 'sort_order']);
 
-        abort_if($chapters->isEmpty(), 404);
+        if ($chapters->isEmpty()) {
+            abort_if($chapter || ! $product->files()->where('disk', 'local')->where('original_name', 'like', '%.pdf')->exists(), 404);
+
+            $purchase->forceFill(['last_read_at' => now()])->saveQuietly();
+
+            return view('site.account.reader-pdf', ['product' => $product]);
+        }
 
         // No chapter in the URL: continue where the reader stopped, or start at the first one.
         if (! $chapter) {
@@ -35,15 +41,15 @@ class ReaderController extends Controller
 
         $purchase->forceFill([
             'last_chapter_id' => $chapter->id,
-            'last_read_at'    => now(),
+            'last_read_at' => now(),
         ])->saveQuietly();
 
         return view('site.account.reader', [
-            'product'  => $product,
-            'chapter'  => $chapter,
+            'product' => $product,
+            'chapter' => $chapter,
             'chapters' => $chapters,
             'previous' => $index > 0 ? $chapters[$index - 1] : null,
-            'next'     => $chapters[$index + 1] ?? null,
+            'next' => $chapters[$index + 1] ?? null,
             'position' => $index + 1,
         ]);
     }

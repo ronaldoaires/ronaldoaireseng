@@ -37,7 +37,7 @@
 
     <x-legal.section title="5. Identificação e violação">
         <p>
-            Os arquivos e a versão digital podem conter a identificação de quem comprou, e os downloads ficam registrados.
+            Cada página do ebook em PDF entregue após a compra contém o nome confirmado no checkout. Os downloads ficam registrados.
             O uso fora desta licença leva ao bloqueio da conta, sem reembolso, e pode gerar responsabilização nos termos da
             Lei 9.610/1998 (Direitos Autorais) e do art. 184 do Código Penal.
         </p>

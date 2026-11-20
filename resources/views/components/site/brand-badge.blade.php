@@ -4,7 +4,7 @@
     'logo' => 'size-8',
 ])
 
-{{-- The logo is a white mark: it always sits on the brand gradient. --}}
-<span {{ $attributes->merge(['class' => "{$size} flex shrink-0 items-center justify-center rounded-xl bg-brand-gradient shadow-[0_6px_18px_-6px_rgb(91_92_240/0.55)]"]) }}>
+{{-- The logo is a white mark on the brand color. --}}
+<span {{ $attributes->merge(['class' => "{$size} flex shrink-0 items-center justify-center rounded-xl bg-brand-gradient"]) }}>
     <x-site.logo :size="$logo" />
 </span>

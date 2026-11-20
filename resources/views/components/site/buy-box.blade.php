@@ -33,7 +33,7 @@
             @if ($product->hasOnlineReader())
                 <li class="flex items-start gap-2">
                     @svg('heroicon-o-device-phone-mobile', 'mt-0.5 size-5 shrink-0 text-primary')
-                    PDF para baixar + versão digital para ler no celular
+                    PDF para baixar + versão digital para ler online
                 </li>
             @else
                 <li class="flex items-start gap-2">

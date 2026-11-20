@@ -19,7 +19,7 @@
                         <x-ui.button :href="route('account.reader', ['product' => $product->slug])" variant="outline">Começar a ler</x-ui.button>
                     @endif
                 </div>
-            @elseif ($purchase->status === 'pending')
+            @elseif ($purchase->status === 'pending' && $purchase->payment_id !== null)
                 <span class="mx-auto flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary">
                     @svg('heroicon-o-clock', 'size-8')
                 </span>
@@ -33,6 +33,20 @@
                     <x-ui.button :href="route('account.library')">Ir para a biblioteca</x-ui.button>
                     <x-ui.button :href="$product->url" variant="outline">Voltar para a página</x-ui.button>
                 </div>
+            @elseif ($purchase->status === 'pending')
+                <span class="mx-auto flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary">
+                    @svg('heroicon-o-clock', 'size-8')
+                </span>
+
+                <h1 class="mt-4 text-2xl font-semibold">Pagamento ainda não concluído</h1>
+                <p class="mt-3 text-sm text-muted">
+                    Você pode continuar o pagamento do mesmo pedido quando quiser.
+                </p>
+
+                <div class="mt-6 flex flex-col gap-3">
+                    <x-ui.button :href="route('checkout.show', ['product' => $product->slug])">Continuar pagamento</x-ui.button>
+                    <x-ui.button :href="$product->url" variant="outline">Voltar para a página</x-ui.button>
+                </div>
             @else
                 <span class="mx-auto flex size-14 items-center justify-center rounded-full bg-red-100 text-red-700">
                     @svg('heroicon-o-exclamation-triangle', 'size-8')
@@ -40,7 +54,7 @@
 
                 <h1 class="mt-4 text-2xl font-semibold">Não foi possível concluir</h1>
                 <p class="mt-3 text-sm text-muted">
-                    O pagamento não foi aprovado e nada foi cobrado. Você pode tentar de novo.
+                    Esta compra não está ativa. Confira o histórico de pagamentos na sua conta antes de tentar novamente.
                 </p>
 
                 <x-ui.button :href="route('checkout.show', ['product' => $product->slug])" class="mt-6">Tentar novamente</x-ui.button>

@@ -13,6 +13,10 @@
 
 /* Tailwind v4 resets buttons to the default cursor: restore the pointer. */
 @layer base {
+    html:has(dialog.site-modal[open]) {
+        overflow: hidden;
+    }
+
     button:not(:disabled),
     [role="button"]:not(:disabled) {
         cursor: pointer;
@@ -40,6 +44,15 @@
    Without anchor positioning they open at a fixed offset under the header;
    browsers with it place them right under their button. */
 @layer components {
+    .site-modal {
+        overscroll-behavior-y: contain;
+    }
+
+    .site-modal::backdrop {
+        background: rgb(15 23 42 / 0.72);
+        backdrop-filter: blur(4px);
+    }
+
     .menu-popover {
         position: fixed;
         inset: auto;
@@ -54,6 +67,8 @@
     .menu-popover--services {
         inset-inline-start: 50%;
         translate: -50% 0;
+        max-block-size: calc(100dvh - 5.5rem);
+        overflow-y: auto;
     }
 
     .menu-popover--reader {
@@ -76,8 +91,6 @@
 
         #services-menu {
             inset-block-start: calc(anchor(--services-menu bottom) + 0.5rem);
-            inset-inline-start: anchor(--services-menu left);
-            translate: none;
         }
     }
 
@@ -96,6 +109,38 @@
                 opacity: 0;
             }
         }
+    }
+}
+
+@layer utilities {
+    html.structure-hero-expanded-open {
+        overflow: hidden;
+    }
+
+    [data-structure-hero]:is(:fullscreen, .structure-hero-expanded) {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        padding: 1rem;
+        background: var(--color-surface);
+    }
+
+    [data-structure-hero].structure-hero-expanded {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+    }
+
+    [data-structure-hero]:is(:fullscreen, .structure-hero-expanded) [data-structure-stage] {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: auto;
+    }
+
+    [data-structure-hero]:is(:fullscreen, .structure-hero-expanded) [data-structure-controls] {
+        margin: 0.5rem auto 0;
     }
 }
 
@@ -164,12 +209,11 @@
     --font-display:
         "Barlow Semi Condensed", "Inter", ui-sans-serif, system-ui, sans-serif;
 
-    /* Brand gradient: engineering blue into violet. Used only on primary
-       actions and brand marks, never as a section wash. */
-    --color-gradient-from: #2563eb;
-    --color-gradient-via: #5b5cf0;
-    --color-gradient-to: #7c4dff;
-    --color-violet: #7c4dff;
+    /* A single engineering blue keeps actions and brand marks consistent. */
+    --color-gradient-from: #2459d3;
+    --color-gradient-via: #2459d3;
+    --color-gradient-to: #2459d3;
+    --color-violet: #2459d3;
 
     /* Brand scale: change these to re-skin the whole site.
        Engineering blue: the base color sits at 600 (header and buttons). */
@@ -186,14 +230,14 @@
     --color-brand-950: #0f1a3d;
 
     /* Semantic colors: pages and components use only these names. */
-    --color-primary: var(--color-brand-600);
+    --color-primary: #2459d3;
     --color-primary-hover: var(--color-brand-700);
     --color-primary-soft: var(--color-brand-50);
     --color-primary-soft-hover: var(--color-brand-100);
     --color-on-primary-soft: var(--color-brand-800);
     --color-on-primary: #ffffff;
 
-    --color-header: var(--color-brand-600);
+    --color-header: #2459d3;
     --color-on-header: #ffffff;
 
     --color-accent: #f59e0b;
@@ -201,12 +245,12 @@
     --color-success: #15803d;
     --color-success-soft: #dcfce7;
 
-    --color-canvas: #f4f6fd;
+    --color-canvas: #f7f9fc;
     --color-surface: #ffffff;
-    --color-ink: #101a3a;
-    --color-muted: #475467;
-    --color-subtle: #667085;
-    --color-line: #e3e6f3;
+    --color-ink: #14243a;
+    --color-muted: #46566b;
+    --color-subtle: #5e6e82;
+    --color-line: #dce4ee;
 
     /* Shape and depth. */
     --radius-card: 1rem;
@@ -358,14 +402,9 @@
     }
 }
 
-/* Brand gradient fill (buttons, logo badge, social icons). */
+/* Brand fill (buttons, logo badge, social icons). */
 @utility bg-brand-gradient {
-    background-image: linear-gradient(
-        120deg,
-        var(--color-gradient-from),
-        var(--color-gradient-via) 55%,
-        var(--color-gradient-to)
-    );
+    background-color: var(--color-primary);
 }
 
 /* Structural drawing axes (dash-dot center lines), used behind the home hero. */

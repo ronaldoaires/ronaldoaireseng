@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use LogicException;
 
 /**
@@ -12,7 +13,8 @@ use LogicException;
  */
 class AccountClosingService
 {
-    public const DELETED    = 'deleted';
+    public const DELETED = 'deleted';
+
     public const ANONYMIZED = 'anonymized';
 
     public function __construct(private readonly ImageService $images) {}
@@ -33,6 +35,7 @@ class AccountClosingService
         }
 
         $hasFinancialHistory = $user->purchases()->exists();
+        $purchaseIds = $hasFinancialHistory ? $user->purchases()->pluck('id') : collect();
 
         DB::transaction(function () use ($user, $hasFinancialHistory) {
             DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->delete();
@@ -48,23 +51,29 @@ class AccountClosingService
             $user->productDownloads()->delete();
             $user->loginLogs()->delete();
             $user->security()->delete();
+            $user->productFeedback()->delete();
+            $user->purchases()->update(['licensed_name' => null]);
 
             // The row stays (purchases point to it) but loses every personal field.
             $user->forceFill([
-                'name'                => 'Conta encerrada',
-                'email'               => null,
-                'email_verified_at'   => null,
-                'pending_email'       => null,
+                'name' => 'Conta encerrada',
+                'email' => null,
+                'email_verified_at' => null,
+                'pending_email' => null,
                 'pending_email_token' => null,
-                'password'            => null,
-                'remember_token'      => null,
-                'cpf'                 => null,
-                'birth_date'          => null,
-                'phone'               => null,
-                'avatar'              => null,
-                'is_active'           => false,
+                'password' => null,
+                'remember_token' => null,
+                'cpf' => null,
+                'birth_date' => null,
+                'phone' => null,
+                'avatar' => null,
+                'is_active' => false,
             ])->save();
         });
+
+        foreach ($purchaseIds as $purchaseId) {
+            Storage::disk('local')->deleteDirectory("licenses/{$purchaseId}");
+        }
 
         return $hasFinancialHistory ? self::ANONYMIZED : self::DELETED;
     }

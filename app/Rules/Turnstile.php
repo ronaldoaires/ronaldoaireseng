@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * Cloudflare Turnstile check (free, no puzzle for real people).
- * Only active when TURNSTILE_SECRET_KEY is set; see Turnstile::enabled().
+ * Active when enabled in configuration and both Turnstile keys are configured.
  */
 class Turnstile implements ValidationRule
 {
@@ -17,7 +17,9 @@ class Turnstile implements ValidationRule
 
     public static function enabled(): bool
     {
-        return filled(config('services.turnstile.site_key')) && filled(config('services.turnstile.secret_key'));
+        return (bool) config('services.turnstile.enabled')
+            && filled(config('services.turnstile.site_key'))
+            && filled(config('services.turnstile.secret_key'));
     }
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
@@ -30,7 +32,7 @@ class Turnstile implements ValidationRule
             $passed = Http::asForm()
                 ->timeout(5)
                 ->post(self::VERIFY_URL, [
-                    'secret'   => config('services.turnstile.secret_key'),
+                    'secret' => config('services.turnstile.secret_key'),
                     'response' => (string) $value,
                     'remoteip' => request()->ip(),
                 ])

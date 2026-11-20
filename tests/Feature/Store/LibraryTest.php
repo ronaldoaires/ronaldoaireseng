@@ -2,7 +2,9 @@
 
 use App\Models\ProductChapter;
 use App\Models\ProductDownload;
+use App\Services\LicensedPdfService;
 use Illuminate\Support\Facades\Storage;
+use setasign\Fpdi\Fpdi;
 
 it('shows only paid products in the library', function () {
     $user = makeBuyer();
@@ -19,9 +21,9 @@ it('shows only paid products in the library', function () {
 it('downloads a purchased file from the private disk and logs it', function () {
     Storage::fake('local');
 
-    $user    = makeBuyer();
+    $user = makeBuyer();
     $product = makeProduct(['slug' => 'concreto-armado']);
-    $file    = attachPdf($product);
+    $file = attachPdf($product);
     grantPurchase($user, $product);
 
     expect($file->fresh()->size_bytes)->toBeGreaterThan(0);
@@ -38,7 +40,7 @@ it('never serves a file to someone who did not buy it', function () {
     Storage::fake('local');
 
     $product = makeProduct();
-    $file    = attachPdf($product);
+    $file = attachPdf($product);
 
     $this->actingAs(makeBuyer())
         ->get(route('account.files.download', ['file' => $file->id]))
@@ -50,10 +52,10 @@ it('never serves a file to someone who did not buy it', function () {
 });
 
 it('opens the online reader and remembers where the buyer stopped', function () {
-    $user    = makeBuyer();
+    $user = makeBuyer();
     $product = makeProduct(['slug' => 'concreto-armado']);
-    $first   = ProductChapter::create(['product_id' => $product->id, 'title' => 'Introdução', 'slug' => 'introducao', 'body' => '<p>Um</p>', 'sort_order' => 1]);
-    $second  = ProductChapter::create(['product_id' => $product->id, 'title' => 'Vigas', 'slug' => 'vigas', 'body' => '<p>Dois</p>', 'sort_order' => 2]);
+    $first = ProductChapter::create(['product_id' => $product->id, 'title' => 'Introdução', 'slug' => 'introducao', 'body' => '<p>Um</p>', 'sort_order' => 1]);
+    $second = ProductChapter::create(['product_id' => $product->id, 'title' => 'Vigas', 'slug' => 'vigas', 'body' => '<p>Dois</p>', 'sort_order' => 2]);
     $purchase = grantPurchase($user, $product);
 
     $this->actingAs($user)
@@ -65,7 +67,7 @@ it('opens the online reader and remembers where the buyer stopped', function () 
         ->assertOk()
         ->assertSee('Dois')
         ->assertSee('Capítulo 2 de 2')
-        ->assertSee('Licenciado para ' . $user->name);
+        ->assertSee('Licenciado para '.$user->name);
 
     expect($purchase->fresh()->last_chapter_id)->toBe($second->id);
 
@@ -77,8 +79,71 @@ it('opens the online reader and remembers where the buyer stopped', function () 
     $this->actingAs($user)->get('/conta')->assertOk()->assertSee('Continuar lendo');
 });
 
+it('lets only buyers read the complete private PDF in the browser', function () {
+    Storage::fake('local');
+
+    $product = makeProduct(['slug' => 'livro-pdf']);
+    $file = attachPdf($product);
+    $readerUrl = route('account.reader', ['product' => $product->slug]);
+    $pdfUrl = route('account.reader.pdf', ['product' => $product->slug]);
+
+    $this->actingAs(makeBuyer())->get($readerUrl)->assertNotFound();
+    $this->actingAs(makeBuyer())->get($pdfUrl)->assertNotFound();
+
+    $buyer = makeBuyer(['name' => 'João José']);
+    $purchase = grantPurchase($buyer, $product);
+
+    $this->actingAs($buyer)->get($readerUrl)->assertOk()->assertSee($pdfUrl, false);
+    $this->actingAs($buyer)->get($pdfUrl)
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/pdf')
+        ->assertHeader('Cache-Control', 'no-store, private');
+
+    $licensedPath = Storage::disk('local')->allFiles("licenses/{$purchase->id}")[0];
+    $licensedContents = Storage::disk('local')->get($licensedPath);
+
+    expect(substr_count($licensedContents, iconv('UTF-8', 'Windows-1252', 'Licenciado para João José')))->toBe(2)
+        ->and($licensedContents)->not->toContain('Pedido #');
+
+    $buyer->update(['name' => 'Outro Nome']);
+
+    $this->actingAs($buyer)
+        ->get(route('account.files.download', ['file' => $file->id]))
+        ->assertOk()
+        ->assertDownload($file->original_name);
+
+    expect(Storage::disk('local')->allFiles("licenses/{$purchase->id}"))->toHaveCount(1);
+
+    expect(Storage::disk('local')->exists($file->path))->toBeTrue();
+});
+
+it('personalizes all pages of the real ebook', function () {
+    Storage::fake('local');
+
+    $product = makeProduct(['slug' => 'concreto-armado-sem-misterio']);
+    $source = database_path('seeders/assets/products/concreto-armado-sem-misterio.pdf');
+    $sourcePath = 'products/concreto-armado-sem-misterio.pdf';
+    Storage::disk('local')->put($sourcePath, file_get_contents($source));
+
+    $file = $product->files()->create([
+        'label' => 'Ebook completo',
+        'disk' => 'local',
+        'path' => $sourcePath,
+        'original_name' => 'concreto-armado-sem-misterio.pdf',
+    ]);
+
+    $buyer = makeBuyer(['name' => 'Ana Maria']);
+    $purchase = grantPurchase($buyer, $product);
+    $path = app(LicensedPdfService::class)->path($file, $purchase);
+    $contents = Storage::disk('local')->get($path);
+
+    expect((new Fpdi)->setSourceFile(Storage::disk('local')->path($path)))->toBe(161)
+        ->and(substr_count($contents, 'Licenciado para Ana Maria'))->toBe(161)
+        ->and($contents)->not->toContain('Pedido #');
+});
+
 it('keeps a product taken off the store in the buyer library', function () {
-    $user    = makeBuyer();
+    $user = makeBuyer();
     $product = makeProduct(['slug' => 'edicao-antiga']);
     grantPurchase($user, $product);
 

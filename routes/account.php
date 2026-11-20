@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Account\AvatarController;
+use App\Http\Controllers\Account\BookPdfController;
 use App\Http\Controllers\Account\DangerController;
 use App\Http\Controllers\Account\DashboardController;
 use App\Http\Controllers\Account\EmailController;
@@ -26,6 +27,10 @@ Route::get('/biblioteca/{product:slug}/ler/{chapter:slug?}', ReaderController::c
     ->scopeBindings()
     ->withTrashed()
     ->name('reader');
+
+Route::get('/biblioteca/{product:slug}/pdf', BookPdfController::class)
+    ->withTrashed()
+    ->name('reader.pdf');
 
 Route::get('/arquivos/{file}/baixar', FileDownloadController::class)
     ->whereNumber('file')

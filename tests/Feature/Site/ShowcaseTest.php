@@ -14,15 +14,15 @@ use App\Models\Service;
 function showcaseService(array $overrides = []): Service
 {
     return Service::create(array_merge([
-        'area'         => ServiceArea::Engineering,
-        'name'         => 'Projeto Estrutural',
-        'slug'         => 'projeto-estrutural',
-        'headline'     => 'Estrutura segura e econômica',
-        'summary'      => 'Cálculo e detalhamento de estruturas de concreto armado.',
-        'body'         => '<h2>Por que contratar</h2><p>Texto <strong>forte</strong>.</p><script>alert(1)</script>',
+        'area' => ServiceArea::Engineering,
+        'name' => 'Projeto Estrutural',
+        'slug' => 'projeto-estrutural',
+        'headline' => 'Estrutura segura e econômica',
+        'summary' => 'Cálculo e detalhamento de estruturas de concreto armado.',
+        'body' => '<h2>Por que contratar</h2><p>Texto <strong>forte</strong>.</p><script>alert(1)</script>',
         'deliverables' => ['Planta de formas', 'Detalhamento de armaduras'],
-        'faq'          => [['question' => 'Quanto tempo leva?', 'answer' => 'Depende da obra.']],
-        'is_active'    => true,
+        'faq' => [['question' => 'Quanto tempo leva?', 'answer' => 'Depende da obra.']],
+        'is_active' => true,
     ], $overrides));
 }
 
@@ -30,14 +30,14 @@ function showcaseProject(Service $service, array $overrides = []): Project
 {
     return Project::create(array_merge([
         'service_id' => $service->id,
-        'title'      => 'Sobrado 10x16',
-        'slug'       => 'sobrado-10x16',
-        'summary'    => 'Projeto estrutural de sobrado com laje treliçada.',
+        'title' => 'Sobrado 10x16',
+        'slug' => 'sobrado-10x16',
+        'summary' => 'Projeto estrutural de sobrado com laje treliçada.',
         'cover_path' => 'projects/sobrado-10x16.webp',
-        'location'   => 'Nova Xavantina/MT',
-        'year'       => 2026,
+        'location' => 'Nova Xavantina/MT',
+        'year' => 2026,
         'built_area' => 160,
-        'is_active'  => true,
+        'is_active' => true,
     ], $overrides));
 }
 
@@ -91,7 +91,7 @@ it('redirects a service opened under the wrong area', function () {
 
 it('lists the portfolio with shareable filters', function () {
     $structural = showcaseService();
-    $website    = showcaseService([
+    $website = showcaseService([
         'area' => ServiceArea::Technology, 'name' => 'Criação de Sites', 'slug' => 'criacao-de-sites',
     ]);
 
@@ -114,8 +114,8 @@ it('renders a project with its gallery and hides inactive ones', function () {
 
     ProjectImage::create([
         'project_id' => $project->id,
-        'path'       => 'projects/gallery/sobrado-10x16-1.webp',
-        'alt'        => 'Fachada do sobrado',
+        'path' => 'projects/gallery/sobrado-10x16-1.webp',
+        'alt' => 'Fachada do sobrado',
         'sort_order' => 1,
     ]);
 
@@ -162,7 +162,7 @@ it('shows the developer profile, not the engineering one, on technology services
         ->assertDontSee('MBA em Gestão de Obras');
 });
 
-it('lists the services in the header submenu, the footer and the home page', function () {
+it('lists services in the header submenu and footer with links for the current host', function () {
     showcaseService();
     showcaseService(['area' => ServiceArea::Technology, 'name' => 'Criação de Sites', 'slug' => 'criacao-de-sites']);
 
@@ -171,9 +171,8 @@ it('lists the services in the header submenu, the footer and the home page', fun
         ->assertSee('popovertarget="services-menu"', false)
         ->assertSee('Serviços de engenharia')
         ->assertSee('Serviços de tecnologia')
-        ->assertSee(url('/servicos/engenharia/projeto-estrutural'), false)
-        ->assertSee(url('/servicos/tecnologia/criacao-de-sites'), false)
-        ->assertSee('id="servicos"', false);
+        ->assertSee('href="/servicos/engenharia/projeto-estrutural"', false)
+        ->assertSee('href="/servicos/tecnologia/criacao-de-sites"', false);
 });
 
 it('refreshes the menus when a service is switched off', function () {

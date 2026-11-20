@@ -28,6 +28,10 @@ class Product extends Model
         'summary',
         'body',
         'cover_path',
+        'sales_video_url',
+        'preview_pdf_path',
+        'preview_images',
+        'sales_reasons',
         'price',
         'compare_at_price',
         'highlights',
@@ -44,17 +48,19 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'type'             => ProductType::class,
-        'price'            => 'decimal:2',
+        'type' => ProductType::class,
+        'price' => 'decimal:2',
         'compare_at_price' => 'decimal:2',
-        'highlights'       => 'array',
-        'specs'            => 'array',
-        'faq'              => 'array',
-        'has_reader'       => 'boolean',
-        'is_published'     => 'boolean',
-        'is_featured'      => 'boolean',
-        'published_at'     => 'datetime',
-        'sort_order'       => 'integer',
+        'highlights' => 'array',
+        'preview_images' => 'array',
+        'sales_reasons' => 'array',
+        'specs' => 'array',
+        'faq' => 'array',
+        'has_reader' => 'boolean',
+        'is_published' => 'boolean',
+        'is_featured' => 'boolean',
+        'published_at' => 'datetime',
+        'sort_order' => 'integer',
     ];
 
     protected static function booted(): void
@@ -89,6 +95,45 @@ class Product extends Model
         return Attribute::make(get: fn () => $this->publicThumbUrl($this->cover_path));
     }
 
+    protected function previewPdfUrl(): Attribute
+    {
+        return Attribute::make(get: fn () => $this->preview_pdf_path
+            ? route('storage.serve', ['path' => $this->preview_pdf_path], false)
+            : null);
+    }
+
+    protected function salesVideoEmbedUrl(): Attribute
+    {
+        return Attribute::make(get: function () {
+            $url = $this->sales_video_url;
+
+            if (! $url || ! str_starts_with($url, 'https://')) {
+                return null;
+            }
+
+            $host = strtolower(parse_url($url, PHP_URL_HOST) ?: '');
+            $path = trim(parse_url($url, PHP_URL_PATH) ?: '', '/');
+
+            if (in_array($host, ['youtube.com', 'www.youtube.com', 'm.youtube.com'], true)) {
+                $id = $path === 'watch' ? parse_url($url, PHP_URL_QUERY) : null;
+                parse_str($id ?: '', $query);
+                $id = $query['v'] ?? (str_starts_with($path, 'shorts/') ? substr($path, 7) : null);
+
+                return is_string($id) && preg_match('/^[a-zA-Z0-9_-]{11}$/', $id) ? 'https://www.youtube-nocookie.com/embed/'.$id : null;
+            }
+
+            if ($host === 'youtu.be' && preg_match('/^[a-zA-Z0-9_-]{11}$/', $path)) {
+                return 'https://www.youtube-nocookie.com/embed/'.$path;
+            }
+
+            if (in_array($host, ['vimeo.com', 'www.vimeo.com'], true) && preg_match('/^\d+$/', $path)) {
+                return 'https://player.vimeo.com/video/'.$path;
+            }
+
+            return null;
+        });
+    }
+
     protected function metaTitle(): Attribute
     {
         return Attribute::make(get: fn () => $this->seo_title ?: $this->title);
@@ -105,7 +150,7 @@ class Product extends Model
     protected function url(): Attribute
     {
         return Attribute::make(get: fn () => route('products.show', [
-            'type'    => $this->type->segment(),
+            'type' => $this->type->segment(),
             'product' => $this->slug,
         ]));
     }
@@ -134,7 +179,7 @@ class Product extends Model
 
     public static function money(mixed $value): string
     {
-        return 'R$ ' . number_format((float) $value, 2, ',', '.');
+        return 'R$ '.number_format((float) $value, 2, ',', '.');
     }
 
     public function isPublished(): bool
@@ -170,6 +215,16 @@ class Product extends Model
     public function purchases(): HasMany
     {
         return $this->hasMany(Purchase::class);
+    }
+
+    public function feedback(): HasMany
+    {
+        return $this->hasMany(ProductFeedback::class);
+    }
+
+    public function approvedReviews(): HasMany
+    {
+        return $this->feedback()->approvedReviews();
     }
 
     // ─── Scopes ─────────────────────────────────────────────────────

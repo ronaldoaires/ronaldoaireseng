@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\User;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use App\Models\Product;
-use App\Models\Purchase;
 
 /**
  * Thin wrapper over the Mercado Pago REST API (no SDK).
@@ -21,6 +21,7 @@ class MercadoPagoService
             ->withToken((string) config('services.mercadopago.access_token'))
             ->acceptJson()
             ->asJson()
+            ->connectTimeout(5)
             ->timeout(15);
     }
 
@@ -38,24 +39,24 @@ class MercadoPagoService
 
         return $this->client()->post('/checkout/preferences', [
             'items' => [[
-                'id'          => (string) $product->id,
-                'title'       => $product->title,
-                'description' => $product->type->getLabel() . ' digital',
+                'id' => (string) $product->id,
+                'title' => $product->title,
+                'description' => $product->type->getLabel().' digital',
                 'category_id' => 'learnings',
-                'quantity'    => 1,
+                'quantity' => 1,
                 'currency_id' => 'BRL',
-                'unit_price'  => round((float) $purchase->amount, 2),
+                'unit_price' => round((float) $purchase->amount, 2),
             ]],
-            'payer'              => ['email' => $user->email],
+            'payer' => ['email' => $user->email],
             // The prefix identifies our purchases in the webhook.
-            'external_reference' => 'purchase-' . $purchase->id,
-            'back_urls'          => [
+            'external_reference' => 'purchase-'.$purchase->id,
+            'back_urls' => [
                 'success' => $returnUrl,
                 'pending' => $returnUrl,
                 'failure' => $returnUrl,
             ],
-            'auto_return'        => 'approved',
-            'notification_url'   => route('webhooks.mercadopago'),
+            'auto_return' => 'approved',
+            'notification_url' => route('webhooks.mercadopago'),
         ])->throw()->json();
     }
 
@@ -82,8 +83,8 @@ class MercadoPagoService
      */
     public function hasValidSignature(Request $request): bool
     {
-        $secret    = (string) config('services.mercadopago.webhook_secret');
-        $header    = (string) $request->header('x-signature');
+        $secret = (string) config('services.mercadopago.webhook_secret');
+        $header = (string) $request->header('x-signature');
         $requestId = (string) $request->header('x-request-id');
 
         if ($secret === '' || $header === '') {
@@ -104,10 +105,10 @@ class MercadoPagoService
             return false;
         }
 
-        $dataId   = $this->notificationId($request);
-        $manifest = ($dataId !== null ? 'id:' . strtolower($dataId) . ';' : '')
-            . ($requestId !== '' ? 'request-id:' . $requestId . ';' : '')
-            . 'ts:' . $parts['ts'] . ';';
+        $dataId = $this->notificationId($request);
+        $manifest = ($dataId !== null ? 'id:'.strtolower($dataId).';' : '')
+            .($requestId !== '' ? 'request-id:'.$requestId.';' : '')
+            .'ts:'.$parts['ts'].';';
 
         return hash_equals(hash_hmac('sha256', $manifest, $secret), $parts['v1']);
     }

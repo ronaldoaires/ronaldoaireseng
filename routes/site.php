@@ -5,6 +5,7 @@ use App\Http\Controllers\Site\CheckoutController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\MercadoPagoWebhookController;
 use App\Http\Controllers\Site\ProductController;
+use App\Http\Controllers\Site\ProductFeedbackController;
 use App\Http\Controllers\Site\SitemapController;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
@@ -37,7 +38,25 @@ Route::get('/{type}/{product:slug}/amostra/{chapter:slug}', [ProductController::
 
 // Checkout: needs a logged-in, verified user. Guests are sent to the login and
 // come back here afterwards (intended URL).
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () use ($types) {
+    Route::get('/{type}/{product:slug}/avaliar', [ProductFeedbackController::class, 'reviewForm'])
+        ->where('type', $types)
+        ->name('products.feedback.review');
+
+    Route::post('/{type}/{product:slug}/avaliar', [ProductFeedbackController::class, 'submitReview'])
+        ->where('type', $types)
+        ->middleware('throttle:5,1')
+        ->name('products.feedback.review.store');
+
+    Route::get('/{type}/{product:slug}/colaborar', [ProductFeedbackController::class, 'suggestionForm'])
+        ->where('type', $types)
+        ->name('products.feedback.suggestion');
+
+    Route::post('/{type}/{product:slug}/colaborar', [ProductFeedbackController::class, 'submitSuggestion'])
+        ->where('type', $types)
+        ->middleware('throttle:5,1')
+        ->name('products.feedback.suggestion.store');
+
     Route::get('/comprar/{product:slug}', [CheckoutController::class, 'show'])->name('checkout.show');
 
     Route::post('/comprar/{product:slug}', [CheckoutController::class, 'store'])

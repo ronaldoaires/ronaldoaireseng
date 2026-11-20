@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
@@ -20,8 +20,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     use Notifiable;
 
     // ─── Roles ──────────────────────────────────────────────────────
-    const ROLE_USER       = 'user';
-    const ROLE_ADMIN      = 'admin';
+    const ROLE_USER = 'user';
+
+    const ROLE_ADMIN = 'admin';
+
     const ROLE_SUPERADMIN = 'superadmin';
 
     const ROLES = [
@@ -64,14 +66,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     ];
 
     protected $casts = [
-        'email_verified_at'   => 'datetime',
-        'last_login_at'       => 'datetime',
-        'birth_date'          => 'date',
-        'is_active'           => 'boolean',
-        'password'            => 'hashed',
+        'email_verified_at' => 'datetime',
+        'last_login_at' => 'datetime',
+        'birth_date' => 'date',
+        'is_active' => 'boolean',
+        'password' => 'hashed',
         'delete_requested_at' => 'datetime',
-        'cpf'                 => 'encrypted',
-        'terms_accepted_at'   => 'datetime',
+        'cpf' => 'encrypted',
+        'terms_accepted_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -112,6 +114,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function purchases(): HasMany
     {
         return $this->hasMany(Purchase::class);
+    }
+
+    public function productFeedback(): HasMany
+    {
+        return $this->hasMany(ProductFeedback::class);
     }
 
     public function productDownloads(): HasMany
@@ -211,9 +218,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
                 }
 
                 $first = mb_substr($words[0], 0, 1);
-                $last  = count($words) > 1 ? mb_substr(end($words), 0, 1) : '';
+                $last = count($words) > 1 ? mb_substr(end($words), 0, 1) : '';
 
-                return mb_strtoupper($first . $last);
+                return mb_strtoupper($first.$last);
             }
         );
     }

@@ -2,9 +2,10 @@
 
 namespace App\Support;
 
+use App\Models\Product;
+use App\Models\ProductFeedback;
 use App\Models\Project;
 use App\Models\Service;
-use App\Models\Product;
 
 class StructuredData
 {
@@ -18,9 +19,9 @@ class StructuredData
 
         foreach (array_values($items) as $index => $item) {
             $entry = [
-                '@type'    => 'ListItem',
+                '@type' => 'ListItem',
                 'position' => $index + 1,
-                'name'     => $item['name'],
+                'name' => $item['name'],
             ];
 
             if (! empty($item['url'])) {
@@ -31,7 +32,7 @@ class StructuredData
         }
 
         return [
-            '@type'           => 'BreadcrumbList',
+            '@type' => 'BreadcrumbList',
             'itemListElement' => $list,
         ];
     }
@@ -42,21 +43,21 @@ class StructuredData
      */
     public static function organization(): array
     {
-        $company     = config('showcase.company');
+        $company = config('showcase.company');
         $person = config('showcase.person');
 
         return [
-            '@type'      => 'ProfessionalService',
-            '@id'        => url('/') . '#organization',
-            'name'       => $company['name'],
-            'url'        => url('/'),
+            '@type' => 'ProfessionalService',
+            '@id' => url('/').'#organization',
+            'name' => $company['name'],
+            'url' => url('/'),
             'areaServed' => ['@type' => 'Country', 'name' => $company['area_served']],
-            'employee'   => [
-                '@type'      => 'Person',
-                'name'       => $person['name'],
-                'jobTitle'   => array_values(array_map(fn (array $profile) => $profile['title'], config('showcase.profiles'))),
+            'employee' => [
+                '@type' => 'Person',
+                'name' => $person['name'],
+                'jobTitle' => array_values(array_map(fn (array $profile) => $profile['title'], config('showcase.profiles'))),
                 'identifier' => config('showcase.profiles.engineering.badge'),
-                'sameAs'     => array_values($person['links']),
+                'sameAs' => array_values($person['links']),
             ],
         ];
     }
@@ -64,23 +65,37 @@ class StructuredData
     /**
      * Product node with its offer, so Google can show price and availability.
      */
-    public static function product(Product $product): array
+    /** @param array<int, ProductFeedback> $reviews */
+    public static function product(Product $product, int $reviewCount = 0, ?float $ratingAverage = null, array $reviews = []): array
     {
         return array_filter([
-            '@type'       => 'Product',
-            'name'        => $product->title,
+            '@type' => 'Product',
+            'name' => $product->title,
             'description' => $product->meta_description,
-            'url'         => $product->url,
-            'image'       => $product->cover_url,
-            'category'    => $product->type->getLabel(),
-            'brand'       => ['@type' => 'Brand', 'name' => config('showcase.person.name')],
-            'offers'      => [
-                '@type'         => 'Offer',
-                'price'         => number_format((float) $product->price, 2, '.', ''),
+            'url' => $product->url,
+            'image' => $product->cover_url,
+            'category' => $product->type->getLabel(),
+            'brand' => ['@type' => 'Brand', 'name' => config('showcase.person.name')],
+            'aggregateRating' => $reviewCount > 0 && $ratingAverage !== null ? [
+                '@type' => 'AggregateRating',
+                'ratingValue' => number_format($ratingAverage, 1, '.', ''),
+                'reviewCount' => $reviewCount,
+                'bestRating' => 5,
+            ] : null,
+            'review' => $reviews !== [] ? array_map(fn ($review) => [
+                '@type' => 'Review',
+                'author' => ['@type' => 'Person', 'name' => $review->display_name],
+                'datePublished' => $review->approved_at->toDateString(),
+                'reviewBody' => $review->plainContent(),
+                'reviewRating' => ['@type' => 'Rating', 'ratingValue' => $review->rating, 'bestRating' => 5],
+            ], $reviews) : null,
+            'offers' => [
+                '@type' => 'Offer',
+                'price' => number_format((float) $product->price, 2, '.', ''),
                 'priceCurrency' => 'BRL',
-                'availability'  => 'https://schema.org/InStock',
-                'url'           => $product->url,
-                'seller'        => ['@id' => url('/') . '#organization'],
+                'availability' => 'https://schema.org/InStock',
+                'url' => $product->url,
+                'seller' => ['@id' => url('/').'#organization'],
             ],
         ]);
     }
@@ -88,15 +103,15 @@ class StructuredData
     public static function service(Service $service, string $url): array
     {
         return array_filter([
-            '@type'       => 'Service',
-            'name'        => $service->name,
+            '@type' => 'Service',
+            'name' => $service->name,
             'serviceType' => $service->name,
             'description' => $service->meta_description,
-            'url'         => $url,
-            'image'       => $service->cover_url,
-            'category'    => $service->area->getLabel(),
-            'provider'    => ['@id' => url('/') . '#organization'],
-            'areaServed'  => ['@type' => 'Country', 'name' => config('showcase.company.area_served')],
+            'url' => $url,
+            'image' => $service->cover_url,
+            'category' => $service->area->getLabel(),
+            'provider' => ['@id' => url('/').'#organization'],
+            'areaServed' => ['@type' => 'Country', 'name' => config('showcase.company.area_served')],
         ]);
     }
 
@@ -109,8 +124,8 @@ class StructuredData
         $questions = collect($items ?? [])
             ->filter(fn ($item) => filled($item['question'] ?? null) && filled($item['answer'] ?? null))
             ->map(fn ($item) => [
-                '@type'          => 'Question',
-                'name'           => $item['question'],
+                '@type' => 'Question',
+                'name' => $item['question'],
                 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $item['answer']],
             ])
             ->values()
@@ -128,16 +143,16 @@ class StructuredData
             ->all();
 
         return array_filter([
-            '@type'           => 'CreativeWork',
-            'name'            => $project->title,
-            'description'     => $project->meta_description,
-            'url'             => $url,
-            'image'           => $images,
-            'dateCreated'     => $project->year ? (string) $project->year : null,
-            'datePublished'   => $project->published_at?->toAtomString(),
+            '@type' => 'CreativeWork',
+            'name' => $project->title,
+            'description' => $project->meta_description,
+            'url' => $url,
+            'image' => $images,
+            'dateCreated' => $project->year ? (string) $project->year : null,
+            'datePublished' => $project->published_at?->toAtomString(),
             'locationCreated' => $project->location ? ['@type' => 'Place', 'name' => $project->location] : null,
-            'about'           => ['@type' => 'Service', 'name' => $project->service->name],
-            'creator'         => ['@id' => url('/') . '#organization'],
+            'about' => ['@type' => 'Service', 'name' => $project->service->name],
+            'creator' => ['@id' => url('/').'#organization'],
         ]);
     }
 
@@ -149,17 +164,17 @@ class StructuredData
     public static function itemList(string $name, string $url, ?string $description, array $items, int $offset = 0): array
     {
         return array_filter([
-            '@type'       => 'CollectionPage',
-            'name'        => $name,
-            'url'         => $url,
+            '@type' => 'CollectionPage',
+            'name' => $name,
+            'url' => $url,
             'description' => $description,
-            'mainEntity'  => [
-                '@type'           => 'ItemList',
+            'mainEntity' => [
+                '@type' => 'ItemList',
                 'itemListElement' => collect($items)->values()->map(fn ($item, $index) => [
-                    '@type'    => 'ListItem',
+                    '@type' => 'ListItem',
                     'position' => $offset + $index + 1,
-                    'url'      => $item['url'],
-                    'name'     => $item['name'],
+                    'url' => $item['url'],
+                    'name' => $item['name'],
                 ])->all(),
             ],
         ]);
@@ -173,7 +188,7 @@ class StructuredData
     {
         return [
             '@context' => 'https://schema.org',
-            '@graph'   => array_values(array_filter($nodes)),
+            '@graph' => array_values(array_filter($nodes)),
         ];
     }
 }

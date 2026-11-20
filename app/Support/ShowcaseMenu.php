@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Cache;
  */
 class ShowcaseMenu
 {
-    private const CACHE_KEY = 'showcase.menu';
+    private const CACHE_KEY = 'showcase.menu.v2';
 
     /**
      * @return array<int, array{label: string, heading: string, url: string, services: array<int, array{name: string, url: string}>}>
@@ -33,12 +33,12 @@ class ShowcaseMenu
                 }
 
                 $areas[] = [
-                    'label'    => $area->getLabel(),
-                    'heading'  => config('showcase.areas.' . $area->value . '.heading'),
-                    'url'      => route('services.area', ['area' => $area->slug()]),
+                    'label' => $area->getLabel(),
+                    'heading' => config('showcase.areas.'.$area->value.'.heading'),
+                    'url' => route('services.area', ['area' => $area->slug()], false),
                     'services' => $inArea->map(fn (Service $service) => [
                         'name' => $service->name,
-                        'url'  => route('services.show', ['area' => $area->slug(), 'service' => $service->slug]),
+                        'url' => route('services.show', ['area' => $area->slug(), 'service' => $service->slug], false),
                     ])->values()->all(),
                 ];
             }

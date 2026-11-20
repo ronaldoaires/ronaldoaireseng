@@ -8,7 +8,7 @@ $standard = collect($product->specs ?? [])
 
 {{-- Whole card is one link (the title's ::after covers the card), so the tap
      target is large on phones and screen readers hear a single link. --}}
-<article class="group relative flex flex-col overflow-hidden rounded-[1.5rem] bg-surface p-2 ring-1 ring-line transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-18px_rgb(91_92_240/0.45)] hover:ring-primary/30">
+<article class="group relative flex flex-col overflow-hidden rounded-[1.5rem] bg-surface p-2 ring-1 ring-line transition motion-safe:hover:-translate-y-0.5 hover:shadow-[0_16px_32px_-20px_rgb(20_36_58/0.32)] hover:ring-primary/30">
     <div class="relative aspect-[3/4] overflow-hidden rounded-[1.1rem] bg-canvas">
         @if ($product->cover_thumb_url)
             <img

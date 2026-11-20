@@ -50,6 +50,15 @@
                 class="space-y-6 rounded-card bg-surface p-6 shadow-card lg:order-1 lg:col-span-3">
                 @csrf
 
+                @if ($isEbook)
+                    <div>
+                        <h2 class="text-lg font-semibold text-ink">Nome no ebook</h2>
+                        <p class="mt-1 text-sm text-muted">Confira como seu nome aparecerá em todas as páginas do PDF.</p>
+                    </div>
+
+                    <x-ui.input name="licensed_name" label="Seu nome" :value="$licensedName" autocomplete="name" maxlength="100" required />
+                @endif
+
                 @unless ($isFree)
                     <div>
                         <h2 class="text-lg font-semibold text-ink">Seus dados</h2>

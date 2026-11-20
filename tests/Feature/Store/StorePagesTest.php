@@ -23,12 +23,12 @@ it('shows an empty state when there is nothing to sell yet', function () {
 
 it('renders the sales page with price, structured data and buy button', function () {
     makeProduct([
-        'title'            => 'Concreto Armado na Prática',
-        'slug'             => 'concreto-armado',
-        'price'            => 79.90,
+        'title' => 'Concreto Armado na Prática',
+        'slug' => 'concreto-armado',
+        'price' => 79.90,
         'compare_at_price' => 129.90,
-        'highlights'       => ['12 exemplos resolvidos'],
-        'faq'              => [['question' => 'Serve para NBR 6118:2023?', 'answer' => 'Sim.']],
+        'highlights' => ['12 exemplos resolvidos'],
+        'faq' => [['question' => 'Serve para NBR 6118:2023?', 'answer' => 'Sim.']],
     ]);
 
     $this->get('/ebooks/concreto-armado')
@@ -39,6 +39,23 @@ it('renders the sales page with price, structured data and buy button', function
         ->assertSee('"@type":"Product"', false)
         ->assertSee('"@type":"FAQPage"', false)
         ->assertSee(route('checkout.show', ['product' => 'concreto-armado']), false);
+});
+
+it('shows a real PDF preview and only embeds supported sales video links', function () {
+    $product = makeProduct([
+        'preview_pdf_path' => 'products/previews/exemplo.pdf',
+        'sales_video_url' => 'https://youtu.be/abcdefghijk',
+    ]);
+
+    $this->get($product->url)
+        ->assertOk()
+        ->assertSee('Veja o livro por dentro')
+        ->assertSee('/media/products/previews/exemplo.pdf', false)
+        ->assertSee('https://www.youtube-nocookie.com/embed/abcdefghijk', false);
+
+    $product->update(['sales_video_url' => 'https://example.com/abcdefghijk']);
+
+    $this->get($product->url)->assertOk()->assertDontSee('https://example.com/abcdefghijk');
 });
 
 it('redirects a product opened under the wrong prefix to its canonical URL', function () {
@@ -55,7 +72,7 @@ it('hides unpublished products', function () {
 
 it('opens only the chapters marked as free sample', function () {
     $product = makeProduct(['slug' => 'concreto-armado']);
-    $free    = ProductChapter::create(['product_id' => $product->id, 'title' => 'Introdução', 'slug' => 'introducao', 'body' => '<p>Texto livre</p>', 'is_preview' => true]);
+    $free = ProductChapter::create(['product_id' => $product->id, 'title' => 'Introdução', 'slug' => 'introducao', 'body' => '<p>Texto livre</p>', 'is_preview' => true]);
     ProductChapter::create(['product_id' => $product->id, 'title' => 'Lajes', 'slug' => 'lajes', 'body' => '<p>Pago</p>', 'sort_order' => 1]);
 
     $this->get('/ebooks/concreto-armado/amostra/introducao')->assertOk()->assertSee('Texto livre');

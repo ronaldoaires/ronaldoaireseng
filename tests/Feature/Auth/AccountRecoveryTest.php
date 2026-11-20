@@ -25,8 +25,8 @@ it('gives a bot the same answer but sends no reset link', function () {
     $user = User::factory()->create();
 
     $this->post('/esqueci-minha-senha', [
-        'email'                 => $user->email,
-        BotTrap::TIME_FIELD     => formToken(),
+        'email' => $user->email,
+        BotTrap::TIME_FIELD => formToken(),
         BotTrap::HONEYPOT_FIELD => 'http://spam.example',
     ])->assertSessionHas('status');
 
@@ -60,8 +60,8 @@ it('gives a bot the same answer but resends nothing', function () {
     $user = User::factory()->unverified()->create();
 
     $this->post('/ativar-conta/reenviar', [
-        'email'                 => $user->email,
-        BotTrap::TIME_FIELD     => formToken(),
+        'email' => $user->email,
+        BotTrap::TIME_FIELD => formToken(),
         BotTrap::HONEYPOT_FIELD => 'x',
     ])->assertRedirect(route('register.done'));
 
@@ -78,7 +78,7 @@ it('asks again when the resend form is sent too fast', function () {
 });
 
 it('requires Turnstile on these forms when it is configured', function () {
-    config(['services.turnstile.site_key' => 'site', 'services.turnstile.secret_key' => 'secret']);
+    config(['services.turnstile.enabled' => true, 'services.turnstile.site_key' => 'site', 'services.turnstile.secret_key' => 'secret']);
 
     $user = User::factory()->unverified()->create();
 

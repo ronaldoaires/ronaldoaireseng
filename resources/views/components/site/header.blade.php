@@ -2,12 +2,12 @@
 
 {{-- Light, sticky bar: the brand mark on the left, the hire action on the right. --}}
 <header class="sticky top-0 z-40 border-b border-line/80 bg-white/85 text-ink backdrop-blur-md">
-    <div class="mx-auto flex h-18 max-w-6xl items-center justify-between gap-6 px-4">
+    <div class="mx-auto flex h-18 max-w-6xl items-center justify-between gap-2 px-3 sm:gap-6 sm:px-4">
         <a href="{{ route('home') }}" class="group flex items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
-            <x-site.brand-badge size="size-11" logo="size-8" />
-            <span class="leading-none">
-                <span class="block font-display text-xl font-bold tracking-tight">{{ config('app.name') }}</span>
-                <span class="mt-1 block text-xs font-medium text-subtle">Engenheiro Civil</span>
+            <x-site.brand-badge size="size-13" logo="size-10" />
+            <span class="min-w-0 leading-none">
+                <span class="block whitespace-nowrap font-display text-base font-bold tracking-tight sm:text-2xl">Ronaldo Aires</span>
+                <span class="mt-1 block whitespace-nowrap text-[10px] font-medium text-subtle sm:text-xs">Engenharia e Tecnologia</span>
             </span>
         </a>
 

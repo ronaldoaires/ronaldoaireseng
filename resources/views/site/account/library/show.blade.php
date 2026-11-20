@@ -12,12 +12,12 @@
     </div>
 
     <div class="space-y-6">
-        @if ($product->hasOnlineReader() && $product->chapters->isNotEmpty())
+        @if ($product->hasOnlineReader() && ($product->chapters->isNotEmpty() || $product->files->contains(fn ($file) => $file->extension() === 'pdf')))
             <section class="rounded-card bg-surface p-6 shadow-card" aria-labelledby="reader-heading">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h2 id="reader-heading" class="text-lg font-semibold text-ink">Versão digital</h2>
-                        <p class="text-sm text-muted">{{ $product->chapters->count() }} capítulos para ler no celular ou no computador.</p>
+                        <p class="text-sm text-muted">{{ $product->chapters->isNotEmpty() ? $product->chapters->count().' capítulos' : 'Livro completo em PDF' }} para ler no celular ou no computador.</p>
                     </div>
                     <x-ui.button :href="route('account.reader', ['product' => $product->slug])">
                         @svg('heroicon-o-book-open', 'size-5')
@@ -25,6 +25,7 @@
                     </x-ui.button>
                 </div>
 
+                @if ($product->chapters->isNotEmpty())
                 <ol class="mt-4 divide-y divide-line text-sm">
                     @foreach ($product->chapters as $chapter)
                         <li>
@@ -38,6 +39,7 @@
                         </li>
                     @endforeach
                 </ol>
+                @endif
             </section>
         @endif
 
@@ -78,6 +80,22 @@
                 </p>
             @endif
         </section>
+
+        @if ($product->isPublished())
+            <section class="rounded-card bg-surface p-6 shadow-card" aria-labelledby="feedback-heading">
+                <h2 id="feedback-heading" class="scroll-mt-24 text-lg font-semibold text-ink">Sua experiência ajuda a melhorar</h2>
+                <p class="mt-2 text-sm text-muted">Conte o que achou do material ou sugira um assunto.</p>
+                @if (session('feedback_status'))
+                    <x-ui.alert tone="success" icon="check-circle" class="mt-4" role="status">
+                        {{ session('feedback_status') }}
+                    </x-ui.alert>
+                @endif
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <x-ui.button :href="route('products.feedback.review', ['type' => $product->type->segment(), 'product' => $product->slug])" variant="outline">Avaliar produto</x-ui.button>
+                    <x-ui.button :href="route('products.feedback.suggestion', ['type' => $product->type->segment(), 'product' => $product->slug])" variant="tonal">Sugerir melhoria</x-ui.button>
+                </div>
+            </section>
+        @endif
 
         @unless ($product->isPublished())
             <x-ui.alert tone="info" icon="information-circle">

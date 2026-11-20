@@ -5,6 +5,8 @@
         ['name' => $product->type->pluralLabel(), 'url' => route('products.index', ['type' => $product->type->segment()])],
         ['name' => $product->title],
     ];
+    $previewPdfModalId = 'preview-pdf-' . $product->id;
+    $previewImageModalId = 'preview-image-' . $product->id;
 @endphp
 
 <x-layouts.site
@@ -14,8 +16,7 @@
     type="product"
     :json-ld="$jsonLd">
 
-    {{-- Hero: cover, promise and price above the fold. On phones the price box
-         comes right after the title, so the buy button is never far. --}}
+    {{-- Hero: the promise, a real book cover and the main purchase action. --}}
     <x-site.page-hero>
         <div class="mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:py-14 lg:grid-cols-12 lg:items-start">
             <div class="lg:col-span-7">
@@ -32,8 +33,10 @@
                 <h1 class="mt-3 font-display text-4xl font-bold leading-[1.05] tracking-tight text-ink sm:text-6xl">{{ $product->title }}</h1>
 
                 @if ($product->subtitle)
-                    <p class="mt-4 text-pretty text-lg text-muted">{{ $product->subtitle }}</p>
+                    <p class="mt-4 text-pretty text-xl font-medium text-ink/80">{{ $product->subtitle }}</p>
                 @endif
+
+                <p class="mt-5 max-w-2xl text-pretty text-base leading-relaxed text-muted sm:text-lg">{{ $product->summary }}</p>
 
                 @if (filled($product->highlights))
                     <ul class="mt-6 space-y-2.5">
@@ -46,6 +49,17 @@
                     </ul>
                 @endif
 
+                @if ($product->slug === 'concreto-armado-sem-misterio')
+                    <section aria-labelledby="ebook-audience-heading" class="mt-7 max-w-2xl border-l-2 border-primary pl-5">
+                        <h2 id="ebook-audience-heading" class="font-display text-lg font-bold text-ink">Este ebook é para quem:</h2>
+                        <ul class="mt-3 list-disc space-y-2 pl-4 text-sm leading-relaxed text-muted marker:text-primary sm:text-base">
+                            <li>Quer entender as orientações das normas técnicas e acompanhar a obra com mais segurança.</li>
+                            <li>Tem dificuldade para interpretar as normas vigentes e relacioná-las às situações da obra.</li>
+                            <li>Não tem acesso fácil ao texto das normas e busca uma explicação clara dos conceitos, com referências para consultar as fontes oficiais.</li>
+                        </ul>
+                    </section>
+                @endif
+
                 @if ($product->hasOnlineReader() && $product->previewChapters->isNotEmpty())
                     @php($sample = $product->previewChapters->first())
                     <a
@@ -55,9 +69,16 @@
                         Ler uma amostra grátis
                     </a>
                 @endif
+
+                @if ($product->preview_pdf_url)
+                    <a href="#amostra" class="mt-6 inline-flex min-h-12 items-center gap-2 rounded-control border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-primary-soft hover:text-primary">
+                        @svg('heroicon-o-book-open', 'size-5')
+                        Ver amostra do ebook
+                    </a>
+                @endif
             </div>
 
-            <div id="comprar" class="grid scroll-mt-6 gap-6 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1">
+            <div id="comprar" class="grid scroll-mt-6 gap-6 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1 lg:gap-4">
                 @if ($product->cover_url)
                     <img
                         src="{{ $product->cover_url }}"
@@ -65,15 +86,104 @@
                         width="600"
                         height="800"
                         fetchpriority="high"
-                        class="mx-auto aspect-[3/4] w-full max-w-xs rounded-card object-cover shadow-card sm:max-w-none lg:max-w-xs">
+                        class="mx-auto aspect-[3/4] w-full max-w-sm rounded-card object-cover shadow-card sm:max-w-none lg:max-w-sm">
                 @endif
 
-                <x-site.buy-box :product="$product" :owns="$owns" class="self-start" />
+                <x-site.buy-box :product="$product" :owns="$owns" data-primary-buy-box class="self-start" />
             </div>
         </div>
     </x-site.page-hero>
 
     <div class="mx-auto max-w-6xl space-y-14 px-4 py-12">
+        @if ($product->sales_video_embed_url)
+            <section aria-labelledby="video-heading" class="mx-auto max-w-4xl">
+                <h2 id="video-heading" class="mb-5 font-display text-2xl font-bold text-ink sm:text-3xl">Conheça o material</h2>
+                <iframe src="{{ $product->sales_video_embed_url }}" title="Vídeo de apresentação de {{ $product->title }}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen class="aspect-video w-full rounded-card border border-line bg-ink shadow-card"></iframe>
+            </section>
+        @endif
+
+        @if ($product->preview_pdf_url)
+            <section id="amostra" aria-labelledby="sample-heading" data-carousel-scope class="scroll-mt-24 rounded-card bg-surface p-5 shadow-card sm:p-8">
+                <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+                    <div class="max-w-2xl">
+                        <p class="text-xs font-bold uppercase tracking-[0.16em] text-primary">Amostra gratuita</p>
+                        <h2 id="sample-heading" class="mt-2 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Veja o livro por dentro</h2>
+                        <p class="mt-2 text-muted">Páginas selecionadas do próprio material, para você avaliar a linguagem, as ilustrações e o nível de detalhe antes de comprar.</p>
+                    </div>
+                    <button type="button" data-modal-open="{{ $previewPdfModalId }}" aria-haspopup="dialog" aria-controls="{{ $previewPdfModalId }}" class="inline-flex min-h-11 items-center gap-2 rounded-control border border-line px-4 text-sm font-semibold text-ink hover:bg-primary-soft">
+                        @svg('heroicon-o-book-open', 'size-4')
+                        Ler prévia completa
+                    </button>
+                </div>
+                @if (filled($product->preview_images))
+                    <div class="swiper overflow-hidden" data-carousel data-carousel-finite data-carousel-shuffle aria-label="Páginas selecionadas do material">
+                        <ul class="swiper-wrapper">
+                            @foreach ($product->preview_images as $image)
+                                @php($imageUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($image['path']))
+                                <li class="swiper-slide h-auto! w-[78vw]! max-w-96! sm:w-80!">
+                                    <button type="button" data-modal-open="{{ $previewImageModalId }}" data-modal-image-src="{{ $imageUrl }}" data-modal-image-alt="{{ $image['alt'] }}" aria-haspopup="dialog" aria-controls="{{ $previewImageModalId }}" aria-label="Ampliar: {{ $image['alt'] }}" class="group relative block h-full w-full overflow-hidden rounded-control border border-line bg-white text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                                        <img src="{{ $imageUrl }}" alt="{{ $image['alt'] }}" loading="lazy" width="1061" height="1500" draggable="false" class="w-full">
+                                        <span aria-hidden="true" class="absolute right-3 top-3 flex size-10 items-center justify-center rounded-control bg-white text-ink shadow-card transition group-hover:text-primary">@svg('heroicon-o-magnifying-glass-plus', 'size-5')</span>
+                                    </button>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    <div class="mt-5 flex items-center justify-between gap-4">
+                        <p class="text-sm text-muted">Arraste ou use as setas para ver as {{ count($product->preview_images) }} páginas.</p>
+                        <div class="flex gap-2">
+                            <button type="button" data-carousel-prev aria-label="Página anterior" class="flex size-11 items-center justify-center rounded-full border border-line text-ink hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-primary [&.is-disabled]:pointer-events-none [&.is-disabled]:opacity-35">@svg('heroicon-o-arrow-left', 'size-5')</button>
+                            <button type="button" data-carousel-next aria-label="Próxima página" class="flex size-11 items-center justify-center rounded-full border border-line text-ink hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-primary [&.is-disabled]:pointer-events-none [&.is-disabled]:opacity-35">@svg('heroicon-o-arrow-right', 'size-5')</button>
+                        </div>
+                    </div>
+                @endif
+                <p class="mt-4 text-sm text-muted">Quer ler com calma? <button type="button" data-modal-open="{{ $previewPdfModalId }}" aria-haspopup="dialog" aria-controls="{{ $previewPdfModalId }}" class="font-semibold text-primary underline">Abra a amostra completa aqui</button>.</p>
+            </section>
+
+            <x-ui.modal :id="$previewPdfModalId" title="Prévia de {{ $product->title }}" size="reading" class="p-0! sm:p-0!">
+                <div class="mx-auto max-w-3xl px-4 pt-5 sm:px-6">
+                    @if (filled($product->preview_images))
+                        <p class="text-sm text-muted">Leia aqui as {{ count($product->preview_images) }} páginas selecionadas do PDF.</p>
+                    @endif
+                    <a href="{{ $product->preview_pdf_url }}" download class="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary underline">@svg('heroicon-o-arrow-down-tray', 'size-4') Baixar PDF da amostra</a>
+                </div>
+                @if (filled($product->preview_images))
+                    <ol class="mx-auto max-w-3xl space-y-8 p-4 sm:p-6">
+                        @foreach ($product->preview_images as $image)
+                            <li>
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($image['path']) }}" alt="{{ $image['alt'] }}" loading="lazy" width="1061" height="1500" class="w-full rounded-control border border-line">
+                            </li>
+                        @endforeach
+                    </ol>
+                @else
+                    <iframe src="{{ $product->preview_pdf_url }}#toolbar=1" title="PDF de amostra de {{ $product->title }}" loading="lazy" class="mt-4 h-[70dvh] w-full bg-white"></iframe>
+                @endif
+            </x-ui.modal>
+
+            <x-ui.modal :id="$previewImageModalId" title="Página ampliada da amostra" size="image">
+                <img data-modal-image alt="" class="mx-auto w-full max-w-[52rem]">
+                <p data-modal-image-caption class="mt-3 text-center text-sm text-muted"></p>
+            </x-ui.modal>
+        @endif
+
+        @if (filled($product->sales_reasons))
+            <section aria-labelledby="reasons-heading" class="rounded-card bg-ink px-6 py-9 text-white sm:px-10 sm:py-12">
+                <div class="max-w-3xl">
+                    <h2 id="reasons-heading" class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Por que adquirir {{ $product->title }}?</h2>
+                    <p class="mt-3 text-white/75">Para entender a obra com mais clareza e saber o que conferir antes de cada etapa.</p>
+                </div>
+                <div class="mt-8 grid gap-6 md:grid-cols-3">
+                    @foreach ($product->sales_reasons as $reason)
+                        <div class="border-t border-white/25 pt-5">
+                            <h3 class="font-display text-xl font-bold">{{ $reason['title'] }}</h3>
+                            <p class="mt-2 leading-relaxed text-white/75">{{ $reason['description'] }}</p>
+                        </div>
+                    @endforeach
+                </div>
+                <x-ui.button :href="route('checkout.show', ['product' => $product->slug])" class="mt-8">Comprar agora</x-ui.button>
+            </section>
+        @endif
+
         <div class="grid gap-8 lg:grid-cols-3">
             @if ($body = \App\Support\RichContent::render($product->body))
                 <article class="rich-content rounded-card bg-surface p-6 shadow-card sm:p-8 lg:col-span-2">
@@ -111,14 +221,14 @@
                                     </span>
                                 </li>
                             @endforeach
-                            @if ($product->hasOnlineReader() && $product->chapters_count > 0)
+                            @if ($product->hasOnlineReader() && ($product->chapters_count > 0 || $product->files->contains(fn ($file) => $file->extension() === 'pdf')))
                                 <li class="flex items-center gap-3 text-sm">
                                     <span class="flex size-10 shrink-0 items-center justify-center rounded-control bg-primary-soft text-primary">
                                         @svg('heroicon-o-device-phone-mobile', 'size-5')
                                     </span>
                                     <span>
                                         <span class="block font-medium text-ink">Versão digital</span>
-                                        <span class="block text-xs text-subtle">{{ $product->chapters_count }} capítulos para ler online</span>
+                                        <span class="block text-xs text-subtle">{{ $product->chapters_count > 0 ? $product->chapters_count.' capítulos' : 'Livro completo em PDF' }} para ler online</span>
                                     </span>
                                 </li>
                             @endif
@@ -128,7 +238,53 @@
             </aside>
         </div>
 
-        <x-site.showcase.responsible :area="\App\Enums\ServiceArea::Engineering" />
+        <section id="avaliacoes" aria-labelledby="reviews-heading" class="scroll-mt-24 rounded-card bg-surface p-6 shadow-card sm:p-8">
+            <div class="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+                <div class="max-w-2xl">
+                    <h2 id="reviews-heading" class="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Avaliações reais de quem adquiriu</h2>
+                    @if ($reviewCount > 0)
+                        <p class="mt-3 flex flex-wrap items-center gap-2 text-muted">
+                            <span aria-hidden="true" class="text-lg tracking-wide">
+                                @for ($star = 1; $star <= 5; $star++)
+                                    <span class="{{ $star <= round($ratingAverage) ? 'text-amber-500' : 'text-line' }}">★</span>
+                                @endfor
+                            </span>
+                            <strong class="text-ink">{{ number_format($ratingAverage, 1, ',', '.') }} de 5</strong>
+                        </p>
+                    @else
+                        <p class="mt-3 text-muted">Ainda não há avaliações publicadas. Quem comprou pode contar como foi a experiência com o material.</p>
+                    @endif
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <x-ui.button :href="route('products.feedback.review', ['type' => $product->type->segment(), 'product' => $product->slug])" variant="outline">Avaliar produto</x-ui.button>
+                    <x-ui.button :href="route('products.feedback.suggestion', ['type' => $product->type->segment(), 'product' => $product->slug])" variant="tonal">Sugerir melhoria</x-ui.button>
+                </div>
+            </div>
+
+            @if (session('feedback_status'))
+                <x-ui.alert tone="success" icon="check-circle" class="mt-6" role="status">
+                    {{ session('feedback_status') }}
+                </x-ui.alert>
+            @endif
+
+            @if ($reviews->isNotEmpty())
+                <div class="mt-8 grid gap-4 md:grid-cols-2">
+                    @foreach ($reviews as $review)
+                        <blockquote class="rounded-control border border-line p-5">
+                            <div class="flex items-center justify-between gap-3">
+                                <span aria-label="{{ $review->rating }} de 5 estrelas" class="text-amber-500">
+                                    <span aria-hidden="true">{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</span>
+                                </span>
+                                <time datetime="{{ $review->approved_at?->toDateString() }}" class="text-xs text-subtle">{{ $review->approved_at?->format('d/m/Y') }}</time>
+                            </div>
+                            <p class="mt-4 whitespace-pre-line leading-relaxed text-ink">{{ $review->plainContent() }}</p>
+                            <footer class="mt-4 text-sm font-semibold text-muted">{{ $review->display_name }} <span class="font-normal text-subtle">· compra verificada</span></footer>
+                        </blockquote>
+                    @endforeach
+                </div>
+                <div class="mt-6">{{ $reviews->links() }}</div>
+            @endif
+        </section>
 
         @if (filled($product->faq))
             <section aria-labelledby="faq-heading">
@@ -178,7 +334,7 @@
 
     {{-- Phones: sticky buy bar, so the button is always one tap away. Sits above the bottom nav. --}}
     @unless ($owns)
-        <div class="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur md:hidden">
+        <div data-sticky-buy-bar class="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur md:hidden">
             <div class="mx-auto flex max-w-md items-center justify-between gap-3">
                 <p class="text-lg font-bold text-ink">{{ (float) $product->price <= 0 ? 'Grátis' : $product->formattedPrice() }}</p>
                 <x-ui.button :href="route('checkout.show', ['product' => $product->slug])" class="flex-1">

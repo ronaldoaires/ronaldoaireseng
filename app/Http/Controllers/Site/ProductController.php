@@ -38,10 +38,10 @@ class ProductController extends Controller
         );
 
         return view('site.products.index', [
-            'type'     => $productType,
+            'type' => $productType,
             'products' => $products,
-            'jsonLd'   => $jsonLd,
-            'owned'    => $this->ownedIds($products->isNotEmpty()),
+            'jsonLd' => $jsonLd,
+            'owned' => $this->ownedIds($products->isNotEmpty()),
         ]);
     }
 
@@ -56,6 +56,9 @@ class ProductController extends Controller
 
         $product->load(['files', 'previewChapters']);
         $product->loadCount('chapters');
+        $reviews = $product->approvedReviews()->latest('approved_at')->paginate(6, ['*'], 'avaliacoes')->fragment('avaliacoes');
+        $reviewCount = $product->approvedReviews()->count();
+        $ratingAverage = $reviewCount > 0 ? (float) $product->approvedReviews()->avg('rating') : null;
 
         // Visits from the admin do not count.
         if (! $request->user()?->isAdmin()) {
@@ -68,14 +71,17 @@ class ProductController extends Controller
                 ['name' => $product->type->pluralLabel(), 'url' => route('products.index', ['type' => $type])],
                 ['name' => $product->title],
             ]),
-            StructuredData::product($product),
+            StructuredData::product($product, $reviewCount, $ratingAverage, $reviews->items()),
             StructuredData::faq($product->faq),
         );
 
         return view('site.products.show', [
             'product' => $product,
-            'jsonLd'  => $jsonLd,
-            'owns'    => (bool) $request->user()?->owns($product),
+            'jsonLd' => $jsonLd,
+            'owns' => (bool) $request->user()?->owns($product),
+            'reviews' => $reviews,
+            'reviewCount' => $reviewCount,
+            'ratingAverage' => $ratingAverage,
             'related' => Product::published()
                 ->whereKeyNot($product->id)
                 ->ordered()
@@ -93,7 +99,7 @@ class ProductController extends Controller
 
         if ($product->type->segment() !== $type) {
             return redirect(route('products.preview', [
-                'type'    => $product->type->segment(),
+                'type' => $product->type->segment(),
                 'product' => $product->slug,
                 'chapter' => $chapter->slug,
             ]), 301);
@@ -104,8 +110,8 @@ class ProductController extends Controller
         }
 
         return view('site.products.preview', [
-            'product'  => $product,
-            'chapter'  => $chapter,
+            'product' => $product,
+            'chapter' => $chapter,
             'chapters' => $product->chapters()->get(['id', 'product_id', 'title', 'slug', 'is_preview']),
         ]);
     }

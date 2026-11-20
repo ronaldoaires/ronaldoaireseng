@@ -8,16 +8,15 @@
     <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-12 lg:gap-14">
         {{-- Portrait first on desktop: the face is what builds trust. --}}
         <div class="relative mx-auto w-full max-w-sm lg:col-span-5 lg:max-w-none">
-            <div class="absolute -inset-3 rounded-[2.25rem] bg-brand-gradient opacity-15 blur-2xl" aria-hidden="true"></div>
-            <figure class="relative overflow-hidden rounded-[2rem] ring-1 ring-line">
+            <figure class="relative overflow-hidden rounded-2xl">
                 <img
                     src="{{ asset('images/ronaldo-aires-capacete.webp') }}"
                     alt="{{ $person['name'] }}, engenheiro civil, de capacete branco"
                     width="720" height="720"
                     loading="lazy" decoding="async"
                     class="aspect-square w-full object-cover">
-                <figcaption class="absolute bottom-4 left-4 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-ink shadow-card backdrop-blur">
-                    Especialista BIM
+                <figcaption class="absolute bottom-4 left-4 rounded-md bg-white px-4 py-2 text-sm font-semibold text-ink">
+                    CREA-MT 62629
                 </figcaption>
             </figure>
         </div>

@@ -32,8 +32,14 @@
                         @if ($product)
                             @if ($purchase->isPaid())
                                 <x-ui.button :href="route('account.library.show', ['product' => $product->slug])" variant="tonal">Abrir</x-ui.button>
-                            @elseif (in_array($purchase->status, ['pending', 'failed', 'cancelled'], true) && $product->isPublished() && ! $purchase->isManual())
-                                <x-ui.button :href="route('checkout.show', ['product' => $product->slug])" variant="outline">Pagar de novo</x-ui.button>
+                            @elseif ($purchase->status === 'pending' && $product->isPublished() && ! $purchase->isManual())
+                                @if ($purchase->payment_id !== null)
+                                    <x-ui.button :href="route('checkout.finish', ['purchase' => $purchase->id, 'payment_id' => $purchase->payment_id])" variant="outline">Acompanhar pagamento</x-ui.button>
+                                @else
+                                    <x-ui.button :href="route('checkout.show', ['product' => $product->slug])" variant="outline">Continuar pagamento</x-ui.button>
+                                @endif
+                            @elseif (in_array($purchase->status, ['failed', 'cancelled'], true) && $product->isPublished() && ! $purchase->isManual())
+                                <x-ui.button :href="route('checkout.show', ['product' => $product->slug])" variant="outline">Pagar novamente</x-ui.button>
                             @endif
                         @endif
                     </div>

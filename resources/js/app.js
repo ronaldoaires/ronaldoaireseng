@@ -220,3 +220,71 @@ const carousels = document.querySelectorAll('[data-carousel]');
 if (carousels.length) {
     import('./carousel.js').then(({ mountCarousels }) => mountCarousels(carousels));
 }
+
+const structureHero = document.querySelector('[data-structure-hero]');
+
+if (structureHero) {
+    import('./structure-hero.js').then(({ mountStructureHero }) => mountStructureHero(structureHero));
+}
+
+const stickyBuyBar = document.querySelector('[data-sticky-buy-bar]');
+const primaryBuyButton = document.querySelector('[data-primary-buy-box] a');
+
+if (stickyBuyBar && primaryBuyButton) {
+    new IntersectionObserver(([entry]) => {
+        stickyBuyBar.classList.toggle('hidden', entry.isIntersecting);
+    }, { threshold: 0.5 }).observe(primaryBuyButton);
+}
+
+// One native dialog pattern for previews and future site modals.
+document.addEventListener('click', (event) => {
+    if (! (event.target instanceof Element)) {
+        return;
+    }
+
+    const trigger = event.target.closest('[data-modal-open]');
+
+    if (trigger) {
+        const dialog = document.getElementById(trigger.dataset.modalOpen);
+
+        if (! (dialog instanceof HTMLDialogElement)) {
+            return;
+        }
+
+        const image = dialog.querySelector('[data-modal-image]');
+
+        if (image instanceof HTMLImageElement && trigger.dataset.modalImageSrc) {
+            image.src = trigger.dataset.modalImageSrc;
+            image.alt = trigger.dataset.modalImageAlt ?? '';
+
+            const caption = dialog.querySelector('[data-modal-image-caption]');
+
+            if (caption) {
+                caption.textContent = image.alt;
+            }
+        }
+
+        if (! dialog.open) {
+            dialog.showModal();
+        }
+
+        return;
+    }
+
+    const close = event.target.closest('[data-modal-close]');
+
+    if (close) {
+        close.closest('dialog')?.close();
+
+        return;
+    }
+
+    if (event.target instanceof HTMLDialogElement && event.target.hasAttribute('data-modal-backdrop')) {
+        const bounds = event.target.getBoundingClientRect();
+
+        if (event.clientX < bounds.left || event.clientX > bounds.right
+            || event.clientY < bounds.top || event.clientY > bounds.bottom) {
+            event.target.close();
+        }
+    }
+});

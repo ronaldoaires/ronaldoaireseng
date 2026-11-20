@@ -8,9 +8,9 @@ $base = 'inline-flex items-center justify-center gap-2 font-semibold transition 
 
 $variants = [
 'primary' => 'rounded-control bg-primary text-on-primary hover:bg-primary-hover',
-// Main call to action: pill with the blue-to-violet brand gradient.
-'gradient' => 'rounded-full bg-brand-gradient text-white shadow-[0_8px_24px_-8px_rgb(91_92_240/0.6)] hover:brightness-110',
-// White pill for use on top of the brand gradient.
+// Main call to action.
+'gradient' => 'rounded-full bg-brand-gradient text-white hover:bg-primary-hover active:scale-[0.98]',
+// White pill for use on dark surfaces.
 'light' => 'rounded-full bg-white text-ink hover:bg-white/90',
 'tonal' => 'rounded-control bg-primary-soft text-on-primary-soft hover:bg-primary-soft-hover',
 'outline' => 'rounded-control border border-line bg-surface text-ink hover:bg-canvas',

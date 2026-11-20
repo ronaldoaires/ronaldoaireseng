@@ -88,14 +88,46 @@ class ProductForm
                         ->disk('public')
                         ->visibility('public')
                         ->storeFiles(false)
+                        ->getUploadedFileUsing(function (FileUpload $component, string $file, string|array|null $storedFileNames): ?array {
+                            $metadata = $component->getUploadedFile($file, $storedFileNames);
+
+                            if ($metadata === null) {
+                                return null;
+                            }
+
+                            $metadata['url'] = route('storage.serve', ['path' => $file], false);
+
+                            return $metadata;
+                        })
                         ->helperText('PNG, JPG ou WebP, até 5 MB. Use a proporção de capa de livro (3:4), ex. 1200 × 1600 px.'),
                 ]),
 
             Section::make('Página de vendas')
                 ->components([
+                    TextInput::make('sales_video_url')
+                        ->label('Vídeo de vendas (opcional)')
+                        ->url()
+                        ->maxLength(2048)
+                        ->helperText('URL HTTPS do YouTube ou Vimeo. O vídeo aparece na página quando estiver disponível.'),
                     ContentEditor::make('body', 'products/content')
                         ->label('Texto')
                         ->helperText('Para quem é, qual problema resolve, o que tem dentro e por que confiar em você.'),
+                    Repeater::make('sales_reasons')
+                        ->label('Por que adquirir')
+                        ->schema([
+                            TextInput::make('title')
+                                ->label('Benefício')
+                                ->required()
+                                ->maxLength(100),
+                            Textarea::make('description')
+                                ->label('Como o material ajuda')
+                                ->required()
+                                ->maxLength(300)
+                                ->rows(2),
+                        ])
+                        ->addActionLabel('Adicionar benefício')
+                        ->reorderable()
+                        ->defaultItems(0),
                 ]),
 
             Section::make('O que você recebe')

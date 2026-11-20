@@ -36,12 +36,18 @@ class PurchaseSyncService
         $purchase = Purchase::find((int) $id);
 
         if (! $purchase) {
-            Log::warning('Mercado Pago: no local purchase for reference ' . $reference);
+            Log::warning('Mercado Pago: no local purchase for reference '.$reference);
 
             return null;
         }
 
-        $paymentId = (string) $payment['id'];
+        $paymentId = (string) ($payment['id'] ?? '');
+
+        if (! ctype_digit($paymentId)) {
+            Log::warning("Mercado Pago: payment without a valid id for purchase {$purchase->id}.");
+
+            return $purchase;
+        }
 
         // A paid purchase is never touched by another payment (an old rejected
         // attempt arriving late, or a duplicated payment).
@@ -52,16 +58,23 @@ class PurchaseSyncService
         }
 
         $status = match ($payment['status'] ?? null) {
-            'approved'                  => 'paid',
-            'rejected'                  => 'failed',
-            'cancelled'                 => 'cancelled',
-            'refunded', 'charged_back'  => 'refunded',
-            default                     => 'pending', // pending, in_process, authorized...
+            'approved' => 'paid',
+            'rejected' => 'failed',
+            'cancelled' => 'cancelled',
+            'refunded', 'charged_back' => 'refunded',
+            default => 'pending', // pending, in_process, authorized...
         };
 
+        if ($status === 'paid' && ! $this->matchesPurchaseAmount($payment, $purchase)) {
+            Log::warning("Mercado Pago: payment {$paymentId} amount or currency differs from purchase {$purchase->id}.");
+
+            return $purchase;
+        }
+
         $attributes = [
-            'status'         => $status,
-            'payment_id'     => $paymentId,
+            'status' => $status,
+            'payment_id' => $paymentId,
+            'payment_url' => $status === 'paid' || $status === 'refunded' ? null : $purchase->payment_url,
             'payment_method' => $this->methodOf($payment),
         ];
 
@@ -70,8 +83,6 @@ class PurchaseSyncService
                 ? Carbon::parse($payment['date_approved'])->setTimezone(config('app.timezone'))
                 : now();
 
-            // The amount really charged is the financial truth.
-            $attributes['amount'] = $payment['transaction_amount'] ?? $purchase->amount;
         }
 
         $purchase->update($attributes);
@@ -79,15 +90,26 @@ class PurchaseSyncService
         return $purchase;
     }
 
+    private function matchesPurchaseAmount(array $payment, Purchase $purchase): bool
+    {
+        $amount = $payment['transaction_amount'] ?? null;
+
+        if (($payment['currency_id'] ?? null) !== 'BRL' || ! is_numeric($amount)) {
+            return false;
+        }
+
+        return (int) round((float) $amount * 100) === (int) round((float) $purchase->amount * 100);
+    }
+
     private function methodOf(array $payment): ?string
     {
-        $type   = $payment['payment_type_id'] ?? null;
+        $type = $payment['payment_type_id'] ?? null;
         $method = $payment['payment_method_id'] ?? null;
 
         return match (true) {
-            $method === 'pix'                                    => 'pix',
+            $method === 'pix' => 'pix',
             in_array($type, ['credit_card', 'debit_card'], true) => $type,
-            default                                              => $type ?? $method,
+            default => $type ?? $method,
         };
     }
 }

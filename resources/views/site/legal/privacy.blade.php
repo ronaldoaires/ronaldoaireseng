@@ -17,6 +17,8 @@
             <li><strong>Login com Google:</strong> nome, e-mail verificado e o identificador da sua conta Google. Não guardamos tokens de acesso e não acessamos outros dados da sua conta Google.</li>
             <li><strong>Perfil (opcional):</strong> telefone e foto.</li>
             <li><strong>CPF e telefone na contratação:</strong> pedidos ao comprar um ebook ou uma planilha. O CPF é armazenado de forma criptografada.</li>
+            <li><strong>Nome no ebook:</strong> o nome confirmado no checkout é guardado junto da compra e inserido em cada página do PDF entregue.</li>
+            <li><strong>Avaliações e sugestões:</strong> guardamos o nome informado, o texto e, nas avaliações, a nota. Avaliações aprovadas aparecem publicamente na página do produto; sugestões ficam visíveis apenas no painel administrativo.</li>
             <li><strong>Uso do site:</strong> produtos na sua biblioteca, histórico de downloads (data e endereço IP) e o último capítulo lido na versão digital.</li>
             <li><strong>Segurança:</strong> registros de acesso, com data, endereço IP e navegador, para detectar acessos indevidos.</li>
             <li><strong>Pagamentos:</strong> produto adquirido, valor, forma de pagamento, status e o identificador da transação no Mercado Pago. <strong>Não temos acesso aos dados do seu cartão.</strong></li>
@@ -27,6 +29,7 @@
         <ul>
             <li><strong>Criar e manter sua conta, liberar downloads e controlar o limite do plano</strong> (execução do contrato).</li>
             <li><strong>Processar pagamentos e identificar suas cobranças:</strong> o CPF é usado somente para isso (execução do contrato e obrigação legal).</li>
+            <li><strong>Identificar sua cópia do ebook:</strong> usamos o nome confirmado no checkout para gerar o PDF de uso pessoal (execução do contrato).</li>
             <li><strong>Telefone:</strong> verificar a sua conta, liberar o acesso ao grupo privado de assinantes e, opcionalmente, oferecer verificação em duas etapas (execução do contrato e legítimo interesse em segurança).</li>
             <li><strong>Prevenir fraudes e abusos</strong>, como compartilhamento de conta ou downloads automatizados (legítimo interesse).</li>
             <li><strong>Enviar e-mails do serviço</strong>, como confirmação de cadastro, troca de e-mail ou aviso de encerramento de conta.</li>

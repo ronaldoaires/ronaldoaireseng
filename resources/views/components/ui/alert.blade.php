@@ -1,5 +1,5 @@
 @props([
-    'tone' => 'warning', // warning | danger | info
+    'tone' => 'warning', // warning | danger | info | success
     'icon' => 'exclamation-triangle',
 ])
 
@@ -9,6 +9,7 @@
         'warning' => 'border-amber-200 bg-amber-50 text-amber-900',
         'danger'  => 'border-red-200 bg-red-50 text-red-800',
         'info'    => 'border-brand-200 bg-primary-soft text-on-primary-soft',
+        'success' => 'border-green-200 bg-green-50 text-green-900',
     ];
 @endphp
 

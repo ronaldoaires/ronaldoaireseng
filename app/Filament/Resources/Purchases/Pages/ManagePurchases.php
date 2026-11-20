@@ -56,7 +56,7 @@ class ManagePurchases extends ManageRecords
                 ])
                 ->action(function (array $data) {
                     $purchase = Purchase::firstOrNew([
-                        'user_id'    => $data['user_id'],
+                        'user_id' => $data['user_id'],
                         'product_id' => $data['product_id'],
                     ]);
 
@@ -67,13 +67,14 @@ class ManagePurchases extends ManageRecords
                     }
 
                     $purchase->fill([
-                        'amount'         => 0,
-                        'status'         => 'paid',
-                        'source'         => Purchase::SOURCE_MANUAL,
-                        'payment_id'     => null,
+                        'amount' => 0,
+                        'licensed_name' => User::findOrFail($data['user_id'])->name,
+                        'status' => 'paid',
+                        'source' => Purchase::SOURCE_MANUAL,
+                        'payment_id' => null,
                         'payment_method' => null,
-                        'paid_at'        => now(),
-                        'notes'          => $data['notes'] ?? null,
+                        'paid_at' => now(),
+                        'notes' => $data['notes'] ?? null,
                     ])->save();
 
                     Notification::make()->title('Acesso liberado')->success()->send();

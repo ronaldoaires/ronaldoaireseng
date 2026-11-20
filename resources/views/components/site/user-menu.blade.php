@@ -1,6 +1,6 @@
 @guest
 <div class="flex items-center gap-2">
-    <x-ui.button :href="route('login')" variant="outline" class="hidden rounded-full! sm:inline-flex">Entrar</x-ui.button>
+    <span class="hidden sm:inline-flex"><x-ui.button :href="route('login')" variant="outline" class="rounded-full!">Entrar</x-ui.button></span>
     <x-ui.button :href="route('register')" variant="gradient">Criar conta</x-ui.button>
 </div>
 @endguest

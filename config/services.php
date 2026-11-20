@@ -35,18 +35,19 @@ return [
         ],
     ],
     'google' => [
-        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         // Relative URIs are expanded to the app URL by Socialite.
-        'redirect'      => '/entrar/google/retorno',
+        'redirect' => '/entrar/google/retorno',
     ],
-    // Cloudflare Turnstile (bot check on the sign-up form). Off while empty.
+    // Cloudflare Turnstile on public forms. Disabled locally and in tests by default.
     'turnstile' => [
-        'site_key'   => env('TURNSTILE_SITE_KEY'),
+        'enabled' => env('TURNSTILE_ENABLED', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),
+        'site_key' => env('TURNSTILE_SITE_KEY'),
         'secret_key' => env('TURNSTILE_SECRET_KEY'),
     ],
     'mercadopago' => [
-        'access_token'   => env('MERCADOPAGO_ACCESS_TOKEN'),
+        'access_token' => env('MERCADOPAGO_ACCESS_TOKEN'),
         'webhook_secret' => env('MERCADOPAGO_WEBHOOK_SECRET'),
     ],
 

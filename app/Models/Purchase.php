@@ -9,15 +9,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Purchase extends Model
 {
     public const SOURCE_CHECKOUT = 'checkout';
-    public const SOURCE_MANUAL   = 'manual';
+
+    public const SOURCE_MANUAL = 'manual';
 
     protected $fillable = [
         'user_id',
         'product_id',
         'amount',
+        'licensed_name',
         'status',
         'source',
         'payment_id',
+        'payment_url',
         'payment_method',
         'paid_at',
         'notes',
@@ -26,8 +29,8 @@ class Purchase extends Model
     ];
 
     protected $casts = [
-        'amount'       => 'decimal:2',
-        'paid_at'      => 'datetime',
+        'amount' => 'decimal:2',
+        'paid_at' => 'datetime',
         'last_read_at' => 'datetime',
     ];
 
@@ -65,10 +68,10 @@ class Purchase extends Model
     public static function statusOptions(): array
     {
         return [
-            'paid'      => 'Pago',
-            'pending'   => 'Pendente',
-            'refunded'  => 'Estornado',
-            'failed'    => 'Falhou',
+            'paid' => 'Pago',
+            'pending' => 'Pendente',
+            'refunded' => 'Estornado',
+            'failed' => 'Falhou',
             'cancelled' => 'Cancelado',
         ];
     }
@@ -84,11 +87,11 @@ class Purchase extends Model
     public function statusTone(): string
     {
         return match ($this->status) {
-            'paid'     => 'success',
-            'pending'  => 'warning',
+            'paid' => 'success',
+            'pending' => 'warning',
             'refunded' => 'info',
-            'failed'   => 'danger',
-            default    => 'neutral',
+            'failed' => 'danger',
+            default => 'neutral',
         };
     }
 
@@ -100,9 +103,9 @@ class Purchase extends Model
 
         return match ($this->payment_method) {
             'credit_card' => 'Cartão de crédito',
-            'debit_card'  => 'Cartão de débito',
-            'pix'         => 'Pix',
-            default       => $this->payment_method ?? '—',
+            'debit_card' => 'Cartão de débito',
+            'pix' => 'Pix',
+            default => $this->payment_method ?? '—',
         };
     }
 }

@@ -22,12 +22,12 @@ function signUpData(array $overrides = []): array
     $token = formToken();
 
     return array_merge([
-        'name'                  => 'Maria Souza',
-        'email'                 => 'maria.souza@gmail.com',
-        'password'              => 'Senha12345',
+        'name' => 'Maria Souza',
+        'email' => 'maria.souza@gmail.com',
+        'password' => 'Senha12345',
         'password_confirmation' => 'Senha12345',
-        'terms'                 => '1',
-        BotTrap::TIME_FIELD     => $token,
+        'terms' => '1',
+        BotTrap::TIME_FIELD => $token,
     ], $overrides);
 }
 
@@ -46,12 +46,12 @@ it('rejects spam names', function (string $name) {
 
     expect(User::count())->toBe(0);
 })->with([
-    'link'      => '* * * <a href="http://advodocs.ru/go-na.php?n1pq8k">$3,222 deposit available</a> * * *',
-    'hash'      => 'hs=fdf62b27504a18959de8b5482155e076',
+    'link' => '* * * <a href="http://advodocs.ru/go-na.php?n1pq8k">$3,222 deposit available</a> * * *',
+    'hash' => 'hs=fdf62b27504a18959de8b5482155e076',
     'asterisks' => 'ххх*',
-    'digits'    => 'Maria 123',
-    'one char'  => 'A',
-    'repeated'  => 'Aaaaaa',
+    'digits' => 'Maria 123',
+    'one char' => 'A',
+    'repeated' => 'Aaaaaa',
 ]);
 
 it('rejects strange and temporary e-mails', function (string $email) {
@@ -59,11 +59,11 @@ it('rejects strange and temporary e-mails', function (string $email) {
 
     expect(User::count())->toBe(0);
 })->with([
-    'tilde'      => 'bgg~671lbkbz0p7mt7ywd@gmail.com',
+    'tilde' => 'bgg~671lbkbz0p7mt7ywd@gmail.com',
     'disposable' => 'teste.cadastro@mailinator.com',
-    'spam list'  => 'joao.silva@fextemp.com',
-    'own list'   => 'teofilo-ferruc91@m.spheremail.net',
-    'no domain'  => 'maria@dominio-que-nao-existe-unset-test.com.br',
+    'spam list' => 'joao.silva@fextemp.com',
+    'own list' => 'teofilo-ferruc91@m.spheremail.net',
+    'no domain' => 'maria@dominio-que-nao-existe-unset-test.com.br',
 ]);
 
 it('pretends success to a bot that fills the honeypot', function () {
@@ -85,8 +85,8 @@ it('asks again when the form is sent too fast or without its token', function ()
 });
 
 it('removes abandoned unverified accounts on a new sign-up', function () {
-    $old      = User::factory()->unverified()->create(['created_at' => now()->subDays(8)]);
-    $recent   = User::factory()->unverified()->create(['created_at' => now()->subDays(2)]);
+    $old = User::factory()->unverified()->create(['created_at' => now()->subDays(8)]);
+    $recent = User::factory()->unverified()->create(['created_at' => now()->subDays(2)]);
     $verified = User::factory()->create(['created_at' => now()->subDays(30)]);
 
     $this->post('/cadastro', signUpData())->assertRedirect(route('register.done'));
@@ -97,7 +97,7 @@ it('removes abandoned unverified accounts on a new sign-up', function () {
 });
 
 it('requires Turnstile when it is configured', function () {
-    config(['services.turnstile.site_key' => 'site', 'services.turnstile.secret_key' => 'secret']);
+    config(['services.turnstile.enabled' => true, 'services.turnstile.site_key' => 'site', 'services.turnstile.secret_key' => 'secret']);
 
     // Missing token: no call. Then Cloudflare refuses once and accepts once.
     Http::fake(['challenges.cloudflare.com/*' => Http::sequence()
@@ -112,6 +112,21 @@ it('requires Turnstile when it is configured', function () {
 
     $this->post('/cadastro', signUpData(['cf-turnstile-response' => 'good']))
         ->assertRedirect(route('register.done'));
+});
+
+it('skips Turnstile when disabled even if its keys are configured', function () {
+    config(['services.turnstile.site_key' => 'site', 'services.turnstile.secret_key' => 'secret']);
+    Http::preventStrayRequests();
+
+    $this->get('/cadastro')
+        ->assertOk()
+        ->assertDontSee('data-sitekey');
+
+    $this->post('/cadastro', signUpData())
+        ->assertRedirect(route('register.done'));
+
+    expect(User::count())->toBe(1);
+    Http::assertNothingSent();
 });
 
 it('applies the same name rule to the profile', function () {
