@@ -40,6 +40,7 @@ return [
             'Instagram' => 'https://www.instagram.com/ronaldoaireseng/',
             'LinkedIn' => 'https://www.linkedin.com/in/ronaldoaires/',
             'GitHub' => 'https://github.com/ronaldoaires',
+            'YouTube' => 'https://www.youtube.com/@ronaldoaireseng',
         ],
     ],
 
