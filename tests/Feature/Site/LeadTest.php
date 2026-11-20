@@ -180,7 +180,15 @@ it('redirects to WhatsApp with a message about the service', function () {
     $response->assertRedirect();
     expect($response->headers->get('Location'))
         ->toStartWith('https://wa.me/5566981068854?text=')
+        ->toContain(rawurlencode('Vim pelo site Ronaldo Aires Engenharia e Tecnologia'))
         ->toContain(rawurlencode('projeto estrutural'));
+});
+
+it('identifies the site in the general WhatsApp message', function () {
+    $response = $this->post('/whatsapp');
+
+    expect($response->headers->get('Location'))
+        ->toContain(rawurlencode('Vim pelo site Ronaldo Aires Engenharia e Tecnologia e quero mais informações.'));
 });
 
 it('does not answer the WhatsApp redirect to plain links', function () {

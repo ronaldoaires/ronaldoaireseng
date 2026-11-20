@@ -31,6 +31,8 @@ class WhatsAppController extends Controller
 
     private function message(Request $request): string
     {
+        $siteName = 'Ronaldo Aires Engenharia e Tecnologia';
+
         $project = $request->filled('projeto')
             ? Project::query()->where('is_active', true)->where('slug', $request->input('projeto'))->first(['title'])
             : null;
@@ -40,9 +42,9 @@ class WhatsAppController extends Controller
             : null;
 
         return match (true) {
-            $project !== null => 'Olá! Vi o projeto "' . $project->title . '" no site e quero um orçamento parecido.',
-            $service !== null => 'Olá! Vim pelo site e quero um orçamento de ' . mb_strtolower($service->name) . '.',
-            default           => 'Olá! Vim pelo site e quero mais informações.',
+            $project !== null => 'Olá! Vi o projeto "' . $project->title . '" no site ' . $siteName . ' e quero um orçamento parecido.',
+            $service !== null => 'Olá! Vim pelo site ' . $siteName . ' e quero um orçamento de ' . mb_strtolower($service->name) . '.',
+            default           => 'Olá! Vim pelo site ' . $siteName . ' e quero mais informações.',
         };
     }
 }
