@@ -53,7 +53,7 @@
         </p>
     </x-legal.section>
 
-    <x-legal.section title="6. Arrependimento e reembolso">
+    <x-legal.section id="arrependimento" title="6. Arrependimento e reembolso">
         <p>
             Como a compra é feita pela internet, você pode desistir em até <strong>7 dias corridos</strong> após a confirmação do pagamento,
             com devolução do valor pago, conforme o art. 49 do Código de Defesa do Consumidor.

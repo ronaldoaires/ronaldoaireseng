@@ -41,6 +41,30 @@ it('renders the sales page with price, structured data and buy button', function
         ->assertSee(route('checkout.show', ['product' => 'concreto-armado']), false);
 });
 
+it('uses the benefit-led layout for products with sales copy in the config', function () {
+    makeProduct(['title' => 'Concreto Armado sem Mistério', 'slug' => 'concreto-armado-sem-misterio']);
+    makeProduct(['title' => 'Outro Ebook', 'slug' => 'outro-ebook']);
+
+    $this->get('/ebooks/concreto-armado-sem-misterio')
+        ->assertOk()
+        ->assertSee(config('showcase.ebook_sales.concreto-armado-sem-misterio.headline'))
+        ->assertSee('Os 42 erros que mais estragam estruturas')
+        ->assertSee('Garantia de 7 dias')
+        ->assertSee(route('checkout.show', ['product' => 'concreto-armado-sem-misterio']), false);
+
+    $this->get('/ebooks/outro-ebook')
+        ->assertOk()
+        ->assertDontSee('Os 42 erros que mais estragam estruturas');
+});
+
+it('hides the empty reviews block from visitors', function () {
+    $product = makeProduct();
+
+    $this->get($product->url)
+        ->assertOk()
+        ->assertDontSee('id="avaliacoes"', false);
+});
+
 it('shows a real PDF preview and only embeds supported sales video links', function () {
     $product = makeProduct([
         'preview_pdf_path' => 'products/previews/exemplo.pdf',

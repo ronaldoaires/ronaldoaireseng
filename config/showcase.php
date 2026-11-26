@@ -195,4 +195,87 @@ return [
         ],
     ],
 
+    /*
+    | Benefit-led sales page, keyed by product slug. A product listed here
+    | gets the long-form layout (resources/views/components/site/ebook-sales);
+    | any other product keeps the standard product page.
+    */
+    'ebook_sales' => [
+        'concreto-armado-sem-misterio' => [
+            'headline' => 'Entenda o porquê de cada ferro, viga e pilar da sua obra',
+            'promise' => 'Respostas diretas para as dúvidas da obra, com desenhos em 3D e o que a norma pede. Você sabe o que conferir antes de cada etapa e evita os erros que estragam a estrutura.',
+            'price_note' => 'Preço de lançamento',
+            'cta' => 'Quero o ebook',
+
+            'stats' => [
+                ['value' => '161', 'label' => 'páginas ilustradas'],
+                ['value' => '21', 'label' => 'capítulos diretos'],
+                ['value' => '42', 'label' => 'erros de obra explicados'],
+                ['value' => '3D', 'label' => 'desenhos de cada peça'],
+            ],
+
+            'questions' => [
+                ['icon' => 'arrows-up-down', 'text' => 'Por que o ferro da viga fica embaixo e o da laje fica em cima, perto da viga?'],
+                ['icon' => 'shield-check', 'text' => 'Quanto de concreto precisa cobrir o ferro para ele não enferrujar?'],
+                ['icon' => 'bolt', 'text' => 'Essa trinca na parede é normal ou é sinal de problema na estrutura?'],
+                ['icon' => 'beaker', 'text' => 'Colocar mais água deixa o concreto mais fácil ou mais fraco?'],
+                ['icon' => 'clock', 'text' => 'Quando posso tirar as escoras da laje sem risco?'],
+                ['icon' => 'document-text', 'text' => 'O que quer dizer "5 N2 c/21" na prancha do projeto?'],
+            ],
+
+            'errors' => [
+                ['number' => 4, 'title' => 'Sapata direto na terra', 'problem' => 'O ferro encosta no solo e o concreto perde água para a terra.', 'fix' => 'Lastro de concreto magro de 5 cm e espaçadores.'],
+                ['number' => 7, 'title' => 'Armadura sem espaçador', 'problem' => 'O ferro encosta na fôrma, fica sem cobrimento e enferruja.', 'fix' => 'Espaçadores (calços) em toda a fôrma, na medida do projeto.'],
+                ['number' => 11, 'title' => 'Negativa pisada', 'problem' => 'O ferro de cima desce e a laje trinca em cima da viga.', 'fix' => 'Tábuas para circular e conferência antes de concretar.'],
+                ['number' => 18, 'title' => 'Furar viga ou pilar para passar cano', 'problem' => 'O furo corta o ferro e enfraquece a peça.', 'fix' => 'Passagens previstas no projeto, nunca abertas depois.'],
+            ],
+
+            'phases' => [
+                'Projeto e fundação',
+                'Armação',
+                'Fôrma e escoramento',
+                'O concreto',
+                'Concretagem',
+                'Impermeabilização',
+                'Cura, desforma e uso',
+            ],
+
+            'method' => [
+                ['title' => 'Em 10 segundos', 'text' => 'A resposta curta, logo no começo.'],
+                ['title' => 'Explicação com desenho', 'text' => 'A peça em 3D e o ferro no lugar certo.'],
+                ['title' => 'Dúvidas frequentes', 'text' => 'As perguntas que aparecem na obra.'],
+                ['title' => 'Erros comuns', 'text' => 'O que dá errado e como evitar.'],
+                ['title' => 'O que diz a norma', 'text' => 'A referência para consultar a fonte.'],
+                ['title' => 'Resumo e teste', 'text' => 'Para fixar antes do próximo capítulo.'],
+            ],
+
+            'audience' => [
+                ['icon' => 'home-modern', 'title' => 'Quem está construindo', 'text' => 'Acompanhe a obra sabendo o que conferir e o que perguntar ao engenheiro.'],
+                ['icon' => 'wrench-screwdriver', 'title' => 'Mestre de obras e equipe', 'text' => 'Entenda o motivo de cada detalhe do projeto e execute com mais segurança.'],
+                ['icon' => 'academic-cap', 'title' => 'Estudante', 'text' => 'Ligue o que aprende em sala ao que acontece no canteiro.'],
+                ['icon' => 'briefcase', 'title' => 'Profissional', 'text' => 'Consulte rápido as normas, tabelas e o pré-dimensionamento.'],
+            ],
+
+            'parts' => [
+                ['icon' => 'cube-transparent', 'title' => 'Entender a estrutura', 'text' => 'Concreto armado, caminho das cargas, tipos de carga e esforços.'],
+                ['icon' => 'square-3-stack-3d', 'title' => 'Conhecer os materiais', 'text' => 'Concreto, aço e cobrimento da armadura.'],
+                ['icon' => 'building-office-2', 'title' => 'Cada peça da estrutura', 'text' => 'Lajes, vigas, pilares, fundações, escadas e reservatórios.'],
+                ['icon' => 'wrench-screwdriver', 'title' => 'Da prancha ao canteiro', 'text' => 'Leitura do projeto, concretagem, fôrmas, escoramento, cura, fissuras e os 42 erros.'],
+                ['icon' => 'calculator', 'title' => 'Para ir além', 'text' => 'Pré-dimensionamento, tabelas de consulta, respostas dos testes e glossário.'],
+            ],
+
+            'author' => [
+                'photo' => 'images/ronaldo-aires-capacete.webp',
+                'text' => 'Sou engenheiro civil e trabalho com projeto estrutural e BIM. Escrevi este livro para responder, de um jeito simples e com desenho, as dúvidas que aparecem entre o projeto e o canteiro.',
+                'credentials' => [
+                    'Engenheiro Civil · CREA-MT 62629',
+                    'MBA em Gestão de Obras',
+                    'Pós-graduação em BIM',
+                ],
+            ],
+
+            'final_heading' => 'Comece hoje a entender a sua obra',
+        ],
+    ],
+
 ];

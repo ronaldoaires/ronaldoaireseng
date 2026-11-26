@@ -7,6 +7,9 @@
     ];
     $previewPdfModalId = 'preview-pdf-' . $product->id;
     $previewImageModalId = 'preview-image-' . $product->id;
+    // Long benefit-led layout for products listed in config/showcase.php (ebook_sales).
+    $sales = config('showcase.ebook_sales.' . $product->slug);
+    $checkoutUrl = route('checkout.show', ['product' => $product->slug]);
 @endphp
 
 <x-layouts.site
@@ -18,25 +21,56 @@
 
     {{-- Hero: the promise, a real book cover and the main purchase action. --}}
     <x-site.page-hero>
-        <div class="mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:py-14 lg:grid-cols-12 lg:items-start">
+        <div @if ($sales) id="comprar" @endif class="mx-auto grid max-w-6xl scroll-mt-6 gap-8 px-4 py-8 sm:py-14 lg:grid-cols-12 lg:items-start">
             <div class="lg:col-span-7">
-                <x-site.breadcrumb :items="$breadcrumbs" />
+                <div @class(['hidden sm:block' => $sales])>
+                    <x-site.breadcrumb :items="$breadcrumbs" />
+                </div>
 
-                <p class="mt-6 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-sm font-semibold text-primary ring-1 ring-line">
+                <p @class(['inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-sm font-semibold text-primary ring-1 ring-line', 'mt-6' => ! $sales, 'sm:mt-6' => $sales])>
                     @svg('heroicon-o-' . $product->type->iconName(), 'size-4')
-                    {{ $typeLabel }}
-                    @if ($product->version)
+                    {{ $sales ? $typeLabel . ' · ' . $product->title : $typeLabel }}
+                    @if ($product->version && ! $sales)
                         · {{ $product->version }}
                     @endif
                 </p>
 
-                <h1 class="mt-3 font-display text-4xl font-bold leading-[1.05] tracking-tight text-ink sm:text-6xl">{{ $product->title }}</h1>
+                @if ($sales)
+                    {{-- Sales layout: the headline is the benefit; the product name sits in the badge above. --}}
+                    <h1 class="mt-4 text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-ink sm:text-6xl">{{ $sales['headline'] }}</h1>
+                    <p class="mt-4 max-w-2xl text-pretty text-lg leading-relaxed text-muted sm:text-xl">{{ $sales['promise'] }}</p>
 
-                @if ($product->subtitle)
-                    <p class="mt-4 text-pretty text-xl font-medium text-ink/80">{{ $product->subtitle }}</p>
+                    {{-- Phones: cover, price and button on the first screen, before any long text. --}}
+                    <div data-primary-buy-box class="mt-6 flex items-center gap-4 rounded-card bg-surface p-3 shadow-card ring-1 ring-line lg:hidden">
+                        @if ($product->cover_url)
+                            <img src="{{ $product->cover_url }}" alt="Capa de {{ $product->title }}" width="600" height="800" fetchpriority="high" class="aspect-[3/4] w-24 shrink-0 rounded-lg object-cover shadow-card sm:w-32">
+                        @endif
+                        <div class="min-w-0 flex-1">
+                            @if ($owns)
+                                <p class="text-sm font-semibold text-success">Você já tem este ebook</p>
+                                <x-ui.button :href="route('account.library.show', ['product' => $product->slug])" class="mt-2 w-full">Abrir na biblioteca</x-ui.button>
+                            @else
+                                @if ($product->hasDiscount())
+                                    <p class="text-xs text-subtle">
+                                        De <span class="line-through">{{ $product->formattedCompareAtPrice() }}</span>
+                                        <span class="ml-1 rounded-full bg-accent px-1.5 py-0.5 font-bold text-brand-950">-{{ $product->discountPercent() }}%</span>
+                                    </p>
+                                @endif
+                                <p class="mt-0.5 text-3xl font-bold leading-none tracking-tight text-ink">{{ $product->formattedPrice() }}</p>
+                                <p class="mt-1 text-xs text-muted">{{ $sales['price_note'] }} · Pix ou cartão</p>
+                                <x-ui.button :href="$checkoutUrl" variant="gradient" class="mt-2.5 w-full">{{ $sales['cta'] }}</x-ui.button>
+                            @endif
+                        </div>
+                    </div>
+                @else
+                    <h1 class="mt-3 font-display text-4xl font-bold leading-[1.05] tracking-tight text-ink sm:text-6xl">{{ $product->title }}</h1>
+
+                    @if ($product->subtitle)
+                        <p class="mt-4 text-pretty text-xl font-medium text-ink/80">{{ $product->subtitle }}</p>
+                    @endif
+
+                    <p class="mt-5 max-w-2xl text-pretty text-base leading-relaxed text-muted sm:text-lg">{{ $product->summary }}</p>
                 @endif
-
-                <p class="mt-5 max-w-2xl text-pretty text-base leading-relaxed text-muted sm:text-lg">{{ $product->summary }}</p>
 
                 @if (filled($product->highlights))
                     <ul class="mt-6 space-y-2.5">
@@ -47,17 +81,6 @@
                             </li>
                         @endforeach
                     </ul>
-                @endif
-
-                @if ($product->slug === 'concreto-armado-sem-misterio')
-                    <section aria-labelledby="ebook-audience-heading" class="mt-7 max-w-2xl border-l-2 border-primary pl-5">
-                        <h2 id="ebook-audience-heading" class="font-display text-lg font-bold text-ink">Este ebook é para quem:</h2>
-                        <ul class="mt-3 list-disc space-y-2 pl-4 text-sm leading-relaxed text-muted marker:text-primary sm:text-base">
-                            <li>Quer entender as orientações das normas técnicas e acompanhar a obra com mais segurança.</li>
-                            <li>Tem dificuldade para interpretar as normas vigentes e relacioná-las às situações da obra.</li>
-                            <li>Não tem acesso fácil ao texto das normas e busca uma explicação clara dos conceitos, com referências para consultar as fontes oficiais.</li>
-                        </ul>
-                    </section>
                 @endif
 
                 @if ($product->hasOnlineReader() && $product->previewChapters->isNotEmpty())
@@ -78,7 +101,7 @@
                 @endif
             </div>
 
-            <div id="comprar" class="grid scroll-mt-6 gap-6 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1 lg:gap-4">
+            <div @if (! $sales) id="comprar" @endif @class(['scroll-mt-6 gap-6 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1 lg:gap-4', 'grid' => ! $sales, 'hidden lg:grid' => $sales])>
                 @if ($product->cover_url)
                     <img
                         src="{{ $product->cover_url }}"
@@ -89,12 +112,20 @@
                         class="mx-auto aspect-[3/4] w-full max-w-sm rounded-card object-cover shadow-card sm:max-w-none lg:max-w-sm">
                 @endif
 
-                <x-site.buy-box :product="$product" :owns="$owns" data-primary-buy-box class="self-start" />
+                @if ($sales)
+                    <x-site.buy-box :product="$product" :owns="$owns" :price-note="$sales['price_note']" :cta="$sales['cta']" class="self-start" />
+                @else
+                    <x-site.buy-box :product="$product" :owns="$owns" data-primary-buy-box class="self-start" />
+                @endif
             </div>
         </div>
     </x-site.page-hero>
 
     <div class="mx-auto max-w-6xl space-y-14 px-4 py-12">
+        @if ($sales)
+            <x-site.ebook-sales.intro :product="$product" :sales="$sales" />
+        @endif
+
         @if ($product->sales_video_embed_url)
             <section aria-labelledby="video-heading" class="mx-auto max-w-4xl">
                 <h2 id="video-heading" class="mb-5 font-display text-2xl font-bold text-ink sm:text-3xl">Conheça o material</h2>
@@ -166,7 +197,9 @@
             </x-ui.modal>
         @endif
 
-        @if (filled($product->sales_reasons))
+        @if ($sales)
+            <x-site.ebook-sales.details :product="$product" :sales="$sales" />
+        @elseif (filled($product->sales_reasons))
             <section aria-labelledby="reasons-heading" class="rounded-card bg-ink px-6 py-9 text-white sm:px-10 sm:py-12">
                 <div class="max-w-3xl">
                     <h2 id="reasons-heading" class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Por que adquirir {{ $product->title }}?</h2>
@@ -185,13 +218,14 @@
         @endif
 
         <div class="grid gap-8 lg:grid-cols-3">
-            @if ($body = \App\Support\RichContent::render($product->body))
+            {{-- The sales layout already tells the whole story in its own sections. --}}
+            @if (! $sales && ($body = \App\Support\RichContent::render($product->body)))
                 <article class="rich-content rounded-card bg-surface p-6 shadow-card sm:p-8 lg:col-span-2">
                     {{ $body }}
                 </article>
             @endif
 
-            <aside @class(['h-fit space-y-6', 'lg:col-span-3' => ! $body])>
+            <aside @class(['h-fit space-y-6', 'lg:col-span-3 grid gap-6 space-y-0! md:grid-cols-2' => empty($body)])>
                 @if (filled($product->specs))
                     <section class="rounded-card bg-surface p-6 shadow-card" aria-labelledby="specs-heading">
                         <h2 id="specs-heading" class="text-lg font-bold text-ink">Ficha técnica</h2>
@@ -238,6 +272,8 @@
             </aside>
         </div>
 
+        {{-- An empty reviews block reads as "nobody bought it": show it only once there are reviews, or to a buyer who can write one. --}}
+        @if ($reviewCount > 0 || $owns || session('feedback_status'))
         <section id="avaliacoes" aria-labelledby="reviews-heading" class="scroll-mt-24 rounded-card bg-surface p-6 shadow-card sm:p-8">
             <div class="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
                 <div class="max-w-2xl">
@@ -285,6 +321,7 @@
                 <div class="mt-6">{{ $reviews->links() }}</div>
             @endif
         </section>
+        @endif
 
         @if (filled($product->faq))
             <section aria-labelledby="faq-heading">
@@ -308,15 +345,24 @@
         {{-- Second chance to buy, after the reader went through the whole page. --}}
         <section class="grid gap-6 rounded-card bg-primary-soft p-6 sm:p-8 lg:grid-cols-2 lg:items-center" aria-labelledby="final-cta-heading">
             <div>
-                <h2 id="final-cta-heading" class="text-2xl font-bold tracking-tight text-on-primary-soft">{{ $product->title }}</h2>
-                <p class="mt-2 text-on-primary-soft/80">{{ $product->summary }}</p>
+                @if ($sales)
+                    <h2 id="final-cta-heading" class="font-display text-3xl font-bold tracking-tight text-on-primary-soft sm:text-4xl">{{ $sales['final_heading'] }}</h2>
+                    <p class="mt-3 text-lg text-on-primary-soft/80">{{ $sales['promise'] }}</p>
+                    <p class="mt-5 flex items-start gap-3 rounded-control bg-white/70 p-4 text-on-primary-soft">
+                        @svg('heroicon-o-shield-check', 'size-8 shrink-0 text-primary', ['aria-hidden' => 'true'])
+                        <span><strong class="block">Garantia de 7 dias</strong> Leia, veja se é para você. Se não gostar, peça o reembolso em até 7 dias e devolvo o valor pago.</span>
+                    </p>
+                @else
+                    <h2 id="final-cta-heading" class="text-2xl font-bold tracking-tight text-on-primary-soft">{{ $product->title }}</h2>
+                    <p class="mt-2 text-on-primary-soft/80">{{ $product->summary }}</p>
+                @endif
                 <p class="mt-4 text-xs text-on-primary-soft/70">
                     Ao comprar você concorda com a
                     <a href="{{ route('legal.license') }}" class="font-semibold underline">Licença de Uso</a>:
                     uso pessoal, sem revenda ou compartilhamento do arquivo.
                 </p>
             </div>
-            <x-site.buy-box :product="$product" :owns="$owns" />
+            <x-site.buy-box :product="$product" :owns="$owns" :price-note="$sales['price_note'] ?? null" :cta="$sales['cta'] ?? null" />
         </section>
 
         @if ($related->isNotEmpty())
@@ -337,8 +383,8 @@
         <div data-sticky-buy-bar class="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur md:hidden">
             <div class="mx-auto flex max-w-md items-center justify-between gap-3">
                 <p class="text-lg font-bold text-ink">{{ (float) $product->price <= 0 ? 'Grátis' : $product->formattedPrice() }}</p>
-                <x-ui.button :href="route('checkout.show', ['product' => $product->slug])" class="flex-1">
-                    {{ (float) $product->price <= 0 ? 'Quero receber' : 'Comprar' }}
+                <x-ui.button :href="$checkoutUrl" variant="gradient" class="flex-1">
+                    {{ (float) $product->price <= 0 ? 'Quero receber' : ($sales['cta'] ?? 'Comprar') }}
                 </x-ui.button>
             </div>
         </div>

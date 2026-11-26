@@ -6,6 +6,7 @@
 .phpactor.json
 .phpunit.result.cache
 /.codex
+/.claude
 /.cursor/
 /.idea
 /.nova
@@ -22,6 +23,7 @@
 /storage/pail
 /vendor
 /docs
+/Claude outputs
 _ide_helper.php
 Homestead.json
 Homestead.yaml

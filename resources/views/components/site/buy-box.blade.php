@@ -1,4 +1,4 @@
-@props(['product', 'owns' => false])
+@props(['product', 'owns' => false, 'priceNote' => null, 'cta' => null])
 
 {{-- Price + main call to action. Used in the hero and again at the end of the page. --}}
 <div {{ $attributes->merge(['class' => 'rounded-card bg-surface p-5 text-ink shadow-card sm:p-6']) }}>
@@ -15,6 +15,9 @@
             <p class="text-3xl font-bold leading-none text-success">Grátis</p>
             <p class="mt-2 text-sm text-muted">Só é preciso criar uma conta.</p>
         @else
+            @if ($priceNote)
+                <p class="mb-2 inline-flex rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-700">{{ $priceNote }}</p>
+            @endif
             @if ($product->hasDiscount())
                 <p class="text-sm text-subtle">
                     De <span class="line-through">{{ $product->formattedCompareAtPrice() }}</span>
@@ -25,8 +28,8 @@
             <p class="mt-2 text-sm text-muted">Pagamento único no Pix ou cartão. Acesso imediato e vitalício.</p>
         @endif
 
-        <x-ui.button :href="route('checkout.show', ['product' => $product->slug])" size="lg" class="mt-5 w-full">
-            {{ (float) $product->price <= 0 ? 'Quero receber' : 'Comprar agora' }}
+        <x-ui.button :href="route('checkout.show', ['product' => $product->slug])" variant="gradient" size="lg" class="mt-5 w-full">
+            {{ (float) $product->price <= 0 ? 'Quero receber' : ($cta ?? 'Comprar agora') }}
         </x-ui.button>
 
         <ul class="mt-4 space-y-2 text-sm text-muted">
@@ -45,6 +48,12 @@
                 @svg('heroicon-o-arrow-path', 'mt-0.5 size-5 shrink-0 text-primary')
                 Atualizações desta versão sem custo
             </li>
+            @if ((float) $product->price > 0)
+                <li class="flex items-start gap-2">
+                    @svg('heroicon-o-shield-check', 'mt-0.5 size-5 shrink-0 text-primary')
+                    <span>7 dias de garantia: <a href="{{ route('legal.terms') }}#arrependimento" class="underline">desistiu, devolvo seu dinheiro</a></span>
+                </li>
+            @endif
             <li class="flex items-start gap-2">
                 @svg('heroicon-o-lock-closed', 'mt-0.5 size-5 shrink-0 text-primary')
                 Pagamento seguro pelo Mercado Pago
